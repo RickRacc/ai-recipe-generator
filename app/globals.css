@@ -4,57 +4,75 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
+    /* Food-inspired light theme */
+    --background: 45 86% 97%; /* Warm cream #FEF7ED */
+    --foreground: 24 10% 10%; /* Rich brown #1C1917 */
+    --card: 48 100% 96%; /* Soft papyrus #FFFBEB */
+    --card-foreground: 24 10% 10%;
+    --popover: 48 100% 96%;
+    --popover-foreground: 24 10% 10%;
+    --primary: 43 96% 56%; /* Golden amber #F59E0B */
     --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
+    --secondary: 158 64% 52%; /* Forest green #047857 */
+    --secondary-foreground: 0 0% 98%;
+    --muted: 45 25% 94%; /* Warm neutral #F5F1EB */
+    --muted-foreground: 25 15% 45%; /* Warm gray */
+    --accent: 0 84% 60%; /* Tomato red #DC2626 */
+    --accent-foreground: 0 0% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
+    --border: 42 16% 87%; /* Warm border #E8E2D4 */
+    --input: 42 16% 87%;
+    --ring: 43 96% 56%; /* Golden ring focus */
+    --chart-1: 43 96% 56%; /* Golden */
+    --chart-2: 158 64% 52%; /* Green */
+    --chart-3: 0 84% 60%; /* Red */
+    --chart-4: 25 95% 53%; /* Orange */
+    --chart-5: 60 95% 53%; /* Yellow */
+    --radius: 0.75rem; /* Slightly more rounded */
+    
+    /* Food-specific colors */
+    --herb-green: 158 64% 52%;
+    --spice-orange: 25 95% 53%;
+    --meat-red: 0 84% 60%;
+    --grain-yellow: 60 95% 53%;
+    --dairy-cream: 48 100% 96%;
+    --vegetable-green: 120 60% 45%;
   }
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
+    /* Food-inspired dark theme - like cast iron and coffee */
+    --background: 24 10% 10%; /* Rich charcoal #1C1917 */
+    --foreground: 48 100% 96%; /* Warm cream text */
+    --card: 25 6% 20%; /* Warm dark brown #44403C */
+    --card-foreground: 48 100% 96%;
+    --popover: 25 6% 20%;
+    --popover-foreground: 48 100% 96%;
+    --primary: 22 95% 54%; /* Warm copper #EA580C */
+    --primary-foreground: 24 10% 10%;
+    --secondary: 142 76% 36%; /* Sage green #16A34A */
     --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
+    --muted: 25 10% 15%; /* Dark coffee #2C2621 */
+    --muted-foreground: 42 16% 65%; /* Warm muted text */
+    --accent: 25 95% 53%; /* Warm orange accent */
+    --accent-foreground: 24 10% 10%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --border: 25 6% 25%; /* Warm dark border #52504C */
+    --input: 25 6% 25%;
+    --ring: 22 95% 54%; /* Copper ring focus */
+    --chart-1: 22 95% 54%; /* Copper */
+    --chart-2: 142 76% 36%; /* Sage green */
+    --chart-3: 0 84% 60%; /* Red */
+    --chart-4: 25 95% 53%; /* Orange */
+    --chart-5: 60 95% 53%; /* Yellow */
+    
+    /* Food-specific dark colors */
+    --herb-green: 142 76% 36%;
+    --spice-orange: 25 95% 53%;
+    --meat-red: 0 72% 51%;
+    --grain-yellow: 45 95% 58%;
+    --dairy-cream: 45 25% 85%;
+    --vegetable-green: 120 45% 40%;
   }
 }
 
@@ -64,5 +82,259 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+    font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   }
+  
+  .font-recipe-title {
+    font-family: var(--font-playfair), Georgia, serif;
+  }
+  
+  .font-recipe-content {
+    font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* Food-inspired custom styles */
+@layer components {
+  /* Base card styling */
+  .recipe-card {
+    @apply bg-card border border-border rounded-xl shadow-lg relative overflow-hidden;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(145deg, hsl(var(--card)), hsl(var(--card) / 0.8));
+  }
+  
+  /* Kitchen card - no 3D to avoid input interference */
+  .kitchen-card {
+    @apply recipe-card;
+  }
+  
+  .kitchen-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 8px 25px -5px rgba(0, 0, 0, 0.1),
+      0 4px 10px -3px rgba(0, 0, 0, 0.05);
+  }
+  
+  /* Enhanced 3D cards with tilt based on mouse position */
+  .recipe-card-3d {
+    @apply recipe-card;
+    transform-style: preserve-3d;
+  }
+  
+  .recipe-card-3d::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
+                               rgba(255,255,255,0.06) 0%, 
+                               transparent 40%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 1;
+  }
+  
+  .recipe-card-3d:hover::before {
+    opacity: 1;
+  }
+  
+  .recipe-card-3d:hover {
+    transform: 
+      translateY(-4px) 
+      rotateX(calc(var(--mouse-y, 0.5) * -10deg + 5deg))
+      rotateY(calc(var(--mouse-x, 0.5) * 10deg - 5deg));
+    box-shadow: 
+      0 20px 40px -12px rgba(0, 0, 0, 0.12),
+      0 12px 25px -8px rgba(0, 0, 0, 0.08),
+      0 0 0 1px rgba(255, 255, 255, 0.03);
+  }
+  
+  .recipe-card > * {
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Ingredient tag styling with food categories */
+  .ingredient-tag {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium transition-all duration-200;
+    @apply hover:scale-105 hover:shadow-md;
+  }
+  
+  .ingredient-tag.herb {
+    background: hsl(var(--herb-green) / 0.1);
+    color: hsl(var(--herb-green));
+    border: 1px solid hsl(var(--herb-green) / 0.3);
+  }
+  
+  .ingredient-tag.spice {
+    background: hsl(var(--spice-orange) / 0.1);
+    color: hsl(var(--spice-orange));
+    border: 1px solid hsl(var(--spice-orange) / 0.3);
+  }
+  
+  .ingredient-tag.protein {
+    background: hsl(var(--meat-red) / 0.1);
+    color: hsl(var(--meat-red));
+    border: 1px solid hsl(var(--meat-red) / 0.3);
+  }
+  
+  .ingredient-tag.grain {
+    background: hsl(var(--grain-yellow) / 0.1);
+    color: hsl(var(--grain-yellow));
+    border: 1px solid hsl(var(--grain-yellow) / 0.3);
+  }
+  
+  .ingredient-tag.dairy {
+    background: hsl(var(--dairy-cream) / 0.8);
+    color: hsl(var(--foreground));
+    border: 1px solid hsl(var(--border));
+  }
+  
+  .ingredient-tag.vegetable {
+    background: hsl(var(--vegetable-green) / 0.1);
+    color: hsl(var(--vegetable-green));
+    border: 1px solid hsl(var(--vegetable-green) / 0.3);
+  }
+  
+  .ingredient-tag.fruit {
+    background: hsl(320 65% 95%);
+    color: hsl(320 65% 40%);
+    border: 1px solid hsl(320 65% 70%);
+  }
+
+  /* Kitchen-inspired button styling */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground px-6 py-3 rounded-xl font-medium;
+    @apply transition-all duration-300 ease-out;
+    @apply hover:bg-primary/90 hover:shadow-lg hover:-translate-y-0.5;
+    @apply active:translate-y-0 active:shadow-md;
+    background-image: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.8) 100%);
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground px-6 py-3 rounded-xl font-medium;
+    @apply transition-all duration-300 ease-out;
+    @apply hover:bg-secondary/90 hover:shadow-lg hover:-translate-y-0.5;
+    @apply active:translate-y-0 active:shadow-md;
+  }
+
+  /* Cooking-inspired input styling */
+  .input-field {
+    @apply bg-input border border-border rounded-xl px-4 py-3;
+    @apply focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent;
+    @apply transition-all duration-200;
+    background-image: 
+      linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
+  }
+
+  /* Recipe content styling */
+  .recipe-content {
+    @apply prose prose-stone max-w-none;
+    line-height: 1.75;
+  }
+  
+  .recipe-content h1, .recipe-content h2, .recipe-content h3 {
+    @apply text-foreground font-bold;
+    font-family: 'Playfair Display', serif;
+  }
+  
+  .recipe-content ul, .recipe-content ol {
+    @apply space-y-2;
+  }
+  
+  .recipe-content li {
+    @apply relative pl-6;
+  }
+  
+  .recipe-content li::marker {
+    @apply text-primary;
+  }
+
+  /* Loading animations */
+  .cooking-loader {
+    @apply inline-block w-4 h-4 border-2 border-primary/20 border-t-primary rounded-full animate-spin;
+  }
+  
+  .steam-effect {
+    @apply relative overflow-hidden;
+  }
+  
+  .steam-effect::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-t from-transparent via-primary/5 to-transparent;
+    animation: steam 3s ease-in-out infinite;
+  }
+
+  /* Improved card backgrounds for better readability */
+  .kitchen-card-bg {
+    background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.95) 100%);
+    border: 1px solid hsl(var(--border) / 0.8);
+    box-shadow: 
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
+      0 1px 3px 0 rgba(0, 0, 0, 0.1),
+      0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  }
+  
+  .tips-card-bg {
+    background: linear-gradient(135deg, hsl(var(--muted) / 0.3) 0%, hsl(var(--muted) / 0.5) 100%);
+    backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--border) / 0.6);
+    box-shadow: 
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.05),
+      0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  }
+  
+  /* Recipe display card styling */
+  .recipe-display-card {
+    background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.98) 100%);
+    border: 1px solid hsl(var(--border) / 0.8);
+    box-shadow: 
+      0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+}
+
+/* Custom animations */
+@keyframes steam {
+  0%, 100% { opacity: 0; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-10px); }
+}
+
+@keyframes sizzle {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.05) rotate(1deg); }
+  75% { transform: scale(0.95) rotate(-1deg); }
+}
+
+/* Ingredient drop animation */
+@keyframes ingredientDrop {
+  0% { transform: translateY(-20px) scale(0.8); opacity: 0; }
+  50% { transform: translateY(-5px) scale(1.05); opacity: 0.8; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.ingredient-drop {
+  animation: ingredientDrop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Loading state animations for bouncing emojis */
+.loading-emojis {
+  animation: bounce 2s infinite;
+}
+
+.loading-emojis:nth-child(1) { animation-delay: 0s; }
+.loading-emojis:nth-child(2) { animation-delay: 0.2s; }
+.loading-emojis:nth-child(3) { animation-delay: 0.4s; }
+.loading-emojis:nth-child(4) { animation-delay: 0.6s; }
+.loading-emojis:nth-child(5) { animation-delay: 0.8s; }
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-10px); }
+  60% { transform: translateY(-5px); }
 }

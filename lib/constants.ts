@@ -31,53 +31,82 @@ export const ANIMATIONS = {
   STAGGER_DELAY: 0.1,
 } as const;
 
-// Common Ingredients Database
-export const COMMON_INGREDIENTS = [
-  // Proteins
-  'chicken', 'beef', 'pork', 'fish', 'salmon', 'tuna', 'shrimp', 'eggs', 'tofu', 'beans', 'lentils',
+// Ingredient Categories for Styling
+export const INGREDIENT_CATEGORIES = {
+  PROTEIN: [
+    'chicken', 'beef', 'pork', 'fish', 'salmon', 'tuna', 'shrimp', 'eggs', 'tofu', 'beans', 'lentils',
+    'turkey', 'duck', 'lamb', 'bacon', 'ham', 'sausage', 'crab', 'lobster', 'scallops', 'cod', 'tilapia',
+    'chickpeas', 'black beans', 'kidney beans', 'white beans', 'tempeh', 'seitan'
+  ],
   
-  // Vegetables
-  'onion', 'garlic', 'tomato', 'potato', 'carrot', 'celery', 'bell pepper', 'broccoli', 'spinach', 'kale',
-  'mushrooms', 'zucchini', 'eggplant', 'cucumber', 'lettuce', 'cabbage', 'corn', 'peas', 'green beans',
-  'asparagus', 'brussels sprouts', 'cauliflower', 'sweet potato', 'avocado', 'radish', 'beets',
+  VEGETABLE: [
+    'onion', 'garlic', 'tomato', 'potato', 'carrot', 'celery', 'bell pepper', 'broccoli', 'spinach', 'kale',
+    'mushrooms', 'zucchini', 'eggplant', 'cucumber', 'lettuce', 'cabbage', 'corn', 'peas', 'green beans',
+    'asparagus', 'brussels sprouts', 'cauliflower', 'sweet potato', 'avocado', 'radish', 'beets',
+    'leek', 'shallot', 'fennel', 'artichoke', 'okra', 'turnip', 'parsnip', 'squash', 'pumpkin'
+  ],
   
-  // Herbs & Spices
-  'basil', 'oregano', 'thyme', 'rosemary', 'parsley', 'cilantro', 'dill', 'sage', 'mint', 'chives',
-  'salt', 'black pepper', 'paprika', 'cumin', 'coriander', 'turmeric', 'ginger', 'cinnamon', 'nutmeg',
-  'cardamom', 'cloves', 'bay leaves', 'red pepper flakes', 'garlic powder', 'onion powder',
+  HERB: [
+    'basil', 'oregano', 'thyme', 'rosemary', 'parsley', 'cilantro', 'dill', 'sage', 'mint', 'chives',
+    'tarragon', 'marjoram', 'bay leaves', 'lavender', 'lemongrass', 'arugula', 'watercress'
+  ],
   
-  // Pantry Staples
-  'olive oil', 'vegetable oil', 'butter', 'flour', 'sugar', 'brown sugar', 'honey', 'maple syrup',
-  'vinegar', 'balsamic vinegar', 'soy sauce', 'worcestershire sauce', 'hot sauce', 'mustard',
-  'ketchup', 'mayonnaise', 'rice', 'pasta', 'bread', 'oats', 'quinoa', 'couscous', 'barley',
+  SPICE: [
+    'salt', 'black pepper', 'paprika', 'cumin', 'coriander', 'turmeric', 'ginger', 'cinnamon', 'nutmeg',
+    'cardamom', 'cloves', 'red pepper flakes', 'garlic powder', 'onion powder', 'cayenne', 'chili powder',
+    'curry powder', 'smoked paprika', 'white pepper', 'allspice', 'fennel seeds', 'mustard seeds',
+    'star anise', 'saffron', 'vanilla', 'cocoa powder'
+  ],
   
-  // Dairy
-  'milk', 'cream', 'yogurt', 'cheese', 'mozzarella', 'cheddar', 'parmesan', 'feta', 'goat cheese',
-  'cream cheese', 'sour cream', 'cottage cheese',
+  GRAIN: [
+    'rice', 'pasta', 'bread', 'flour', 'quinoa', 'oats', 'barley', 'wheat', 'couscous', 'bulgur',
+    'polenta', 'cornmeal', 'semolina', 'buckwheat', 'millet', 'amaranth', 'freekeh', 'farro'
+  ],
   
-  // Fruits
+  DAIRY: [
+    'milk', 'cream', 'butter', 'cheese', 'yogurt', 'sour cream', 'cottage cheese', 'ricotta',
+    'mozzarella', 'cheddar', 'parmesan', 'feta', 'goat cheese', 'cream cheese', 'mascarpone',
+    'heavy cream', 'half and half', 'buttermilk'
+  ]
+} as const;
+
+// Fruits for autocomplete
+export const FRUITS = [
   'apple', 'banana', 'orange', 'lemon', 'lime', 'strawberry', 'blueberry', 'raspberry', 'blackberry',
   'grapes', 'pineapple', 'mango', 'peach', 'pear', 'plum', 'cherry', 'watermelon', 'cantaloupe',
   'kiwi', 'pomegranate', 'cranberry', 'coconut',
-  
-  // Nuts & Seeds
-  'almonds', 'walnuts', 'pecans', 'peanuts', 'cashews', 'pistachios', 'sunflower seeds', 'pumpkin seeds',
-  'sesame seeds', 'chia seeds', 'flax seeds', 'pine nuts',
-  
-  // Canned/Processed
-  'tomato sauce', 'tomato paste', 'coconut milk', 'broth', 'chicken broth', 'vegetable broth',
-  'canned beans', 'canned tomatoes', 'olives', 'capers', 'pickles', 'dried cranberries', 'raisins',
 ] as const;
 
-// Ingredient Categories
-export const INGREDIENT_CATEGORIES = {
-  PROTEINS: ['chicken', 'beef', 'pork', 'fish', 'salmon', 'tuna', 'shrimp', 'eggs', 'tofu', 'beans', 'lentils'],
-  VEGETABLES: ['onion', 'garlic', 'tomato', 'potato', 'carrot', 'celery', 'bell pepper', 'broccoli', 'spinach', 'kale'],
-  HERBS_SPICES: ['basil', 'oregano', 'thyme', 'rosemary', 'parsley', 'cilantro', 'salt', 'pepper', 'paprika', 'cumin'],
-  PANTRY: ['olive oil', 'flour', 'sugar', 'rice', 'pasta', 'vinegar', 'soy sauce'],
-  DAIRY: ['milk', 'cheese', 'butter', 'yogurt', 'cream'],
-  FRUITS: ['apple', 'banana', 'lemon', 'lime', 'strawberry', 'blueberry'],
-} as const;
+// Additional ingredient categories
+export const NUTS_SEEDS = [
+  'almonds', 'walnuts', 'pecans', 'peanuts', 'cashews', 'pistachios', 'sunflower seeds', 'pumpkin seeds',
+  'sesame seeds', 'chia seeds', 'flax seeds', 'pine nuts'
+] as const;
+
+export const PANTRY_STAPLES = [
+  'olive oil', 'vegetable oil', 'flour', 'sugar', 'brown sugar', 'honey', 'maple syrup',
+  'vinegar', 'balsamic vinegar', 'soy sauce', 'worcestershire sauce', 'hot sauce', 'mustard',
+  'ketchup', 'mayonnaise', 'broth', 'chicken broth', 'vegetable broth'
+] as const;
+
+export const CANNED_PROCESSED = [
+  'tomato sauce', 'tomato paste', 'coconut milk', 'canned beans', 'canned tomatoes', 
+  'olives', 'capers', 'pickles', 'dried cranberries', 'raisins'
+] as const;
+
+// Flattened list for autocomplete
+export const COMMON_INGREDIENTS = [
+  ...INGREDIENT_CATEGORIES.PROTEIN,
+  ...INGREDIENT_CATEGORIES.VEGETABLE,
+  ...INGREDIENT_CATEGORIES.HERB,
+  ...INGREDIENT_CATEGORIES.SPICE,
+  ...INGREDIENT_CATEGORIES.GRAIN,
+  ...INGREDIENT_CATEGORIES.DAIRY,
+  ...FRUITS,
+  ...NUTS_SEEDS,
+  ...PANTRY_STAPLES,
+  ...CANNED_PROCESSED,
+] as const;
 
 // Blacklisted items (non-food items)
 export const BLACKLISTED_ITEMS = [

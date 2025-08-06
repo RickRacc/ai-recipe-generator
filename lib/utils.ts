@@ -62,3 +62,94 @@ export function generateId(): string {
 export const hasEnvVars =
   process.env.NEXT_PUBLIC_SUPABASE_URL &&
   (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY);
+
+// Ingredient categorization for styling
+import { INGREDIENT_CATEGORIES, FRUITS } from './constants';
+
+export function getIngredientCategory(ingredient: string): string {
+  const normalizedIngredient = ingredient.toLowerCase().trim();
+  
+  if (INGREDIENT_CATEGORIES.PROTEIN.some(item => normalizedIngredient.includes(item.toLowerCase()))) {
+    return 'protein';
+  }
+  if (INGREDIENT_CATEGORIES.HERB.some(item => normalizedIngredient.includes(item.toLowerCase()))) {
+    return 'herb';
+  }
+  if (INGREDIENT_CATEGORIES.SPICE.some(item => normalizedIngredient.includes(item.toLowerCase()))) {
+    return 'spice';
+  }
+  if (INGREDIENT_CATEGORIES.GRAIN.some(item => normalizedIngredient.includes(item.toLowerCase()))) {
+    return 'grain';
+  }
+  if (INGREDIENT_CATEGORIES.DAIRY.some(item => normalizedIngredient.includes(item.toLowerCase()))) {
+    return 'dairy';
+  }
+  if (FRUITS.some(item => normalizedIngredient.includes(item.toLowerCase()))) {
+    return 'fruit';
+  }
+  if (INGREDIENT_CATEGORIES.VEGETABLE.some(item => normalizedIngredient.includes(item.toLowerCase()))) {
+    return 'vegetable';
+  }
+  
+  // Default category
+  return 'vegetable';
+}
+
+// Get ingredient emoji based on category
+export function getIngredientEmoji(ingredient: string): string {
+  const category = getIngredientCategory(ingredient);
+  const normalizedIngredient = ingredient.toLowerCase().trim();
+  
+  // Specific ingredient emojis
+  const specificEmojis: { [key: string]: string } = {
+    'chicken': '🐔',
+    'beef': '🥩',
+    'pork': '🐷',
+    'fish': '🐟',
+    'salmon': '🐟',
+    'shrimp': '🦐',
+    'eggs': '🥚',
+    'tofu': '🔲',
+    'onion': '🧅',
+    'garlic': '🧄',
+    'tomato': '🍅',
+    'potato': '🥔',
+    'carrot': '🥕',
+    'pepper': '🌶️',
+    'bell pepper': '🫑',
+    'broccoli': '🥦',
+    'spinach': '🥬',
+    'mushrooms': '🍄',
+    'avocado': '🥑',
+    'corn': '🌽',
+    'cheese': '🧀',
+    'milk': '🥛',
+    'butter': '🧈',
+    'bread': '🍞',
+    'rice': '🍚',
+    'pasta': '🍝',
+    'lemon': '🍋',
+    'lime': '🟢',
+    'olive oil': '🫒',
+    'honey': '🍯',
+  };
+  
+  // Check for specific emoji first
+  for (const [key, emoji] of Object.entries(specificEmojis)) {
+    if (normalizedIngredient.includes(key)) {
+      return emoji;
+    }
+  }
+  
+  // Category-based emojis
+  switch (category) {
+    case 'protein': return '🥩';
+    case 'herb': return '🌿';
+    case 'spice': return '✨';
+    case 'grain': return '🌾';
+    case 'dairy': return '🧀';
+    case 'fruit': return '🍎';
+    case 'vegetable': return '🥬';
+    default: return '🥄';
+  }
+}

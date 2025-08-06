@@ -1,64 +1,50 @@
 'use client';
 
-import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { ReactNode, useRef } from 'react';
 
 interface TiltCardProps {
   children: ReactNode;
   className?: string;
-  maxTilt?: number;
-  scale?: number;
-  perspective?: number;
+  disabled?: boolean;
 }
 
 export function TiltCard({ 
   children, 
-  className = '', 
-  maxTilt = 15,
-  scale = 1.02,
-  perspective = 1000
+  className = '',
+  disabled = false
 }: TiltCardProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-
-  const rotateX = useTransform(y, [-0.5, 0.5], [maxTilt, -maxTilt]);
-  const rotateY = useTransform(x, [-0.5, 0.5], [-maxTilt, maxTilt]);
 
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (!ref.current) return;
+    if (!ref.current || disabled) return;
 
     const rect = ref.current.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
+    const x = (event.clientX - rect.left) / rect.width;
+    const y = (event.clientY - rect.top) / rect.height;
 
-    const mouseX = (event.clientX - centerX) / (rect.width / 2);
-    const mouseY = (event.clientY - centerY) / (rect.height / 2);
-
-    x.set(mouseX);
-    y.set(mouseY);
+    ref.current.style.setProperty('--mouse-x', x.toString());
+    ref.current.style.setProperty('--mouse-y', y.toString());
   };
 
   const handleMouseLeave = () => {
-    x.set(0);
-    y.set(0);
+    if (!ref.current || disabled) return;
+    
+    ref.current.style.setProperty('--mouse-x', '0.5');
+    ref.current.style.setProperty('--mouse-y', '0.5');
   };
 
   return (
-    <motion.div
+    <div
       ref={ref}
-      className={`transform-gpu ${className}`}
-      style={{
-        perspective,
-        rotateX,
-        rotateY,
-      }}
-      whileHover={{ scale }}
-      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      className={className}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
+      style={{
+        '--mouse-x': '0.5',
+        '--mouse-y': '0.5',
+      } as React.CSSProperties}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }
