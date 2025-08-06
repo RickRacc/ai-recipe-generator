@@ -71,7 +71,7 @@ export function RecipeGenerator({ onRecipeSaved }: RecipeGeneratorProps) {
         >
           <div className="kitchen-card kitchen-card-bg p-8">
             <div className="flex items-center gap-3 mb-6">
-              <span className="text-2xl">🔪</span>
+              
               <h2 className="text-2xl font-bold font-recipe-title text-foreground">Your Kitchen</h2>
             </div>
             <IngredientInput
@@ -89,7 +89,6 @@ export function RecipeGenerator({ onRecipeSaved }: RecipeGeneratorProps) {
           >
             <TiltCard className="recipe-card-3d tips-card-bg p-6">
             <div className="flex items-center gap-3 mb-4">
-              <span className="text-xl">👨‍🍳</span>
               <h3 className="text-lg font-semibold font-recipe-title text-foreground">Chef&apos;s Tips</h3>
             </div>
             <ul className="text-sm text-muted-foreground space-y-3 font-recipe-content">

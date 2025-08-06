@@ -10,7 +10,7 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "🍳 AI Recipe Generator - Create Delicious Recipes with AI",
+  title: "AI Recipe Generator",
   description: "Transform your ingredients into amazing recipes with AI. Generate personalized cooking instructions, save favorites, and discover new culinary adventures.",
   icons: {
     icon: "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍳</text></svg>",
