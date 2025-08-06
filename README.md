@@ -1,105 +1,161 @@
-<a href="https://demo-nextjs-with-supabase.vercel.app/">
-  <img alt="Next.js and Supabase Starter Kit - the fastest way to build apps with Next.js and Supabase" src="https://demo-nextjs-with-supabase.vercel.app/opengraph-image.png">
-  <h1 align="center">Next.js and Supabase Starter Kit</h1>
-</a>
+# 🍳 AI Recipe Generator
 
-<p align="center">
- The fastest way to build apps with Next.js and Supabase
-</p>
+<div align="center">
+  <img alt="AI Recipe Generator" src="https://via.placeholder.com/800x300?text=AI+Recipe+Generator" />
+  <h3>Transform ingredients into delicious recipes with AI</h3>
+</div>
 
 <p align="center">
   <a href="#features"><strong>Features</strong></a> ·
-  <a href="#demo"><strong>Demo</strong></a> ·
-  <a href="#deploy-to-vercel"><strong>Deploy to Vercel</strong></a> ·
-  <a href="#clone-and-run-locally"><strong>Clone and run locally</strong></a> ·
-  <a href="#feedback-and-issues"><strong>Feedback and issues</strong></a>
-  <a href="#more-supabase-examples"><strong>More Examples</strong></a>
+  <a href="#quick-start"><strong>Quick Start</strong></a> ·
+  <a href="#tech-stack"><strong>Tech Stack</strong></a> ·
+  <a href="#deployment"><strong>Deployment</strong></a>
 </p>
 <br/>
 
-## Features
+## ✨ Features
 
-- Works across the entire [Next.js](https://nextjs.org) stack
-  - App Router
-  - Pages Router
-  - Middleware
-  - Client
-  - Server
-  - It just works!
-- supabase-ssr. A package to configure Supabase Auth to use cookies
-- Password-based authentication block installed via the [Supabase UI Library](https://supabase.com/ui/docs/nextjs/password-based-auth)
-- Styling with [Tailwind CSS](https://tailwindcss.com)
-- Components with [shadcn/ui](https://ui.shadcn.com/)
-- Optional deployment with [Supabase Vercel Integration and Vercel deploy](#deploy-your-own)
-  - Environment variables automatically assigned to Vercel project
+### Core Functionality
+- **🤖 AI-Powered Recipe Generation**: Uses Claude AI to create detailed, practical recipes
+- **⚡ Real-time Streaming**: Watch recipes generate with typewriter effect
+- **🧠 Smart Ingredient Validation**: Autocomplete and validation for 500+ ingredients
+- **📚 Recipe History**: Save, search, and manage your generated recipes
+- **🔐 User Authentication**: Secure user accounts with Supabase Auth
 
-## Demo
+### User Experience
+- **📱 Responsive Design**: Works seamlessly on all devices
+- **🎨 Advanced Animations**: Framer Motion and Anime.js for smooth interactions
+- **♿ Accessibility First**: Full ARIA support, keyboard navigation, screen reader friendly
+- **⚡ Performance Optimized**: Edge runtime, code splitting, optimized bundles
+- **🌙 Dark/Light Theme**: Built-in theme switching
 
-You can view a fully working demo at [demo-nextjs-with-supabase.vercel.app](https://demo-nextjs-with-supabase.vercel.app/).
+### Security & Performance
+- **🛡️ Rate Limiting**: Prevents abuse with user-based limits
+- **🔒 Input Sanitization**: XSS protection and validation
+- **🚨 Error Boundaries**: Graceful error handling throughout the app
+- **📊 Performance Monitoring**: Built-in metrics and Web Vitals tracking
 
-## Deploy to Vercel
+## 🚀 Quick Start
 
-Vercel deployment will guide you through creating a Supabase account and project.
+### Prerequisites
+- Node.js 18+ and npm
+- Supabase account and project
+- Anthropic API key
 
-After installation of the Supabase integration, all relevant environment variables will be assigned to the project so the deployment is fully functioning.
+### Installation
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&project-name=nextjs-with-supabase&repository-name=nextjs-with-supabase&demo-title=nextjs-with-supabase&demo-description=This+starter+configures+Supabase+Auth+to+use+cookies%2C+making+the+user%27s+session+available+throughout+the+entire+Next.js+app+-+Client+Components%2C+Server+Components%2C+Route+Handlers%2C+Server+Actions+and+Middleware.&demo-url=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2F&external-id=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&demo-image=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2Fopengraph-image.png)
-
-The above will also clone the Starter kit to your GitHub, you can clone that locally and develop locally.
-
-If you wish to just develop locally and not deploy to Vercel, [follow the steps below](#clone-and-run-locally).
-
-## Clone and run locally
-
-1. You'll first need a Supabase project which can be made [via the Supabase dashboard](https://database.new)
-
-2. Create a Next.js app using the Supabase Starter template npx command
-
+1. **Clone the repository**
    ```bash
-   npx create-next-app --example with-supabase with-supabase-app
+   git clone <your-repo-url>
+   cd ai-recipe-generator
    ```
 
+2. **Install dependencies**
    ```bash
-   yarn create next-app --example with-supabase with-supabase-app
+   npm install
    ```
 
+3. **Set up environment variables**
    ```bash
-   pnpm create next-app --example with-supabase with-supabase-app
+   cp .env.local.example .env.local
+   ```
+   
+   Fill in your environment variables:
+   ```env
+   # Supabase Configuration
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+
+   # AI Configuration
+   ANTHROPIC_API_KEY=your_anthropic_api_key
+
+   # Optional: Rate Limiting
+   MAX_REQUESTS_PER_HOUR_GUEST=5
+   MAX_REQUESTS_PER_HOUR_USER=20
    ```
 
-3. Use `cd` to change into the app's directory
+4. **Set up the database**
+   
+   Run this SQL in your Supabase SQL editor:
+   ```sql
+   -- Create recipes table
+   CREATE TABLE recipes (
+     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+     title TEXT NOT NULL,
+     ingredients TEXT[] NOT NULL,
+     recipe_content TEXT NOT NULL,
+     created_at TIMESTAMPTZ DEFAULT now()
+   );
 
-   ```bash
-   cd with-supabase-app
+   -- Enable Row Level Security
+   ALTER TABLE recipes ENABLE ROW LEVEL SECURITY;
+
+   -- RLS Policies
+   CREATE POLICY "Users can view own recipes" ON recipes
+     FOR SELECT USING (auth.uid() = user_id);
+
+   CREATE POLICY "Users can insert own recipes" ON recipes
+     FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+   CREATE POLICY "Users can delete own recipes" ON recipes
+     FOR DELETE USING (auth.uid() = user_id);
+
+   -- Create indexes for better performance
+   CREATE INDEX idx_recipes_user_created ON recipes(user_id, created_at DESC);
    ```
 
-4. Rename `.env.example` to `.env.local` and update the following:
-
-   ```
-   NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=[INSERT SUPABASE PROJECT API ANON KEY]
-   ```
-
-   Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` can be found in [your Supabase project's API settings](https://supabase.com/dashboard/project/_?showConnect=true)
-
-5. You can now run the Next.js local development server:
-
+5. **Start the development server**
    ```bash
    npm run dev
    ```
 
-   The starter kit should now be running on [localhost:3000](http://localhost:3000/).
+6. **Open your browser**
+   
+   Navigate to `http://localhost:3000`
 
-6. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
+## 🛠️ Tech Stack
 
-> Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
+### Frontend
+- **Next.js 14** - React framework with App Router
+- **TypeScript** - Type safety and developer experience
+- **Tailwind CSS** - Utility-first CSS framework
+- **Framer Motion** - Animation library
+- **Anime.js** - Advanced animations
+- **Radix UI** - Accessible UI components
 
-## Feedback and issues
+### Backend
+- **Next.js API Routes** - Serverless API endpoints
+- **Edge Runtime** - Optimal streaming performance
+- **Supabase** - Database, authentication, and real-time features
+- **Claude AI (Haiku)** - Recipe generation AI model
 
-Please file feedback and issues over on the [Supabase GitHub org](https://github.com/supabase/supabase/issues/new/choose).
+### Development & Deployment
+- **Vercel** - Hosting and deployment
+- **ESLint** - Code linting
+- **TypeScript** - Static type checking
 
-## More Supabase examples
+## 🚀 Deployment
 
-- [Next.js Subscription Payments Starter](https://github.com/vercel/nextjs-subscription-payments)
-- [Cookie-based Auth and the Next.js 13 App Router (free course)](https://youtube.com/playlist?list=PL5S4mPUpp4OtMhpnp93EFSo42iQ40XjbF)
-- [Supabase Auth and the Next.js App Router](https://github.com/supabase/supabase/tree/master/examples/auth/nextjs)
+### Deploy to Vercel
+
+1. **Connect your repository** to Vercel
+2. **Configure environment variables** in Vercel dashboard
+3. **Deploy** - automatic deployments on git push
+
+### Environment Variables for Production
+Make sure to set these in your Vercel dashboard:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `ANTHROPIC_API_KEY`
+
+### Health Check
+Monitor your deployment health at `/health`
+
+---
+
+**Built with ❤️ using Next.js, Supabase, and Claude AI**
+
+*Happy cooking! 🍳*
