@@ -1,9 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: ["@anthropic-ai/sdk"],
-  },
+  serverExternalPackages: ["@anthropic-ai/sdk"],
+
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
