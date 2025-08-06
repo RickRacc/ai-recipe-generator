@@ -4,26 +4,55 @@ import { createClient } from "@/lib/supabase/server";
 import { LogoutButton } from "./logout-button";
 
 export async function AuthButton() {
-  const supabase = await createClient();
+  // Check if environment variables are available
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+    // During build time or when env vars are missing, show sign-in/sign-up buttons
+    return (
+      <div className="flex gap-2">
+        <Button asChild size="sm" variant={"outline"}>
+          <Link href="/auth/login">Sign in</Link>
+        </Button>
+        <Button asChild size="sm" variant={"default"}>
+          <Link href="/auth/sign-up">Sign up</Link>
+        </Button>
+      </div>
+    );
+  }
 
-  // You can also use getUser() which will be slower.
-  const { data } = await supabase.auth.getClaims();
+  try {
+    const supabase = await createClient();
 
-  const user = data?.claims;
+    // You can also use getUser() which will be slower.
+    const { data } = await supabase.auth.getClaims();
 
-  return user ? (
-    <div className="flex items-center gap-4">
-      Hey, {user.email}!
-      <LogoutButton />
-    </div>
-  ) : (
-    <div className="flex gap-2">
-      <Button asChild size="sm" variant={"outline"}>
-        <Link href="/auth/login">Sign in</Link>
-      </Button>
-      <Button asChild size="sm" variant={"default"}>
-        <Link href="/auth/sign-up">Sign up</Link>
-      </Button>
-    </div>
-  );
+    const user = data?.claims;
+
+    return user ? (
+      <div className="flex items-center gap-4">
+        Hey, {user.email}!
+        <LogoutButton />
+      </div>
+    ) : (
+      <div className="flex gap-2">
+        <Button asChild size="sm" variant={"outline"}>
+          <Link href="/auth/login">Sign in</Link>
+        </Button>
+        <Button asChild size="sm" variant={"default"}>
+          <Link href="/auth/sign-up">Sign up</Link>
+        </Button>
+      </div>
+    );
+  } catch {
+    // If there's an error creating the client, show sign-in/sign-up buttons
+    return (
+      <div className="flex gap-2">
+        <Button asChild size="sm" variant={"outline"}>
+          <Link href="/auth/login">Sign in</Link>
+        </Button>
+        <Button asChild size="sm" variant={"default"}>
+          <Link href="/auth/sign-up">Sign up</Link>
+        </Button>
+      </div>
+    );
+  }
 }
