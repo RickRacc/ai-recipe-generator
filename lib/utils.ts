@@ -61,9 +61,7 @@ export function generateId(): string {
 // Check if user has required environment variables
 export const hasEnvVars =
   process.env.NEXT_PUBLIC_SUPABASE_URL &&
-  (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY) &&
-  process.env.SUPABASE_URL &&
-  process.env.SUPABASE_ANON_KEY;
+  (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY);
 
 // Ingredient categorization for styling
 import { INGREDIENT_CATEGORIES, FRUITS } from './constants';
