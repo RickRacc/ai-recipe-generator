@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function getUser(request?: NextRequest) {
+export async function getUser() {
   const cookieStore = await cookies();
   
   const supabase = createServerClient(
@@ -81,7 +81,7 @@ export async function getUserFromRequest(request: NextRequest) {
 export function createAuthResponse(
   success: boolean,
   message: string,
-  data?: any,
+  data?: unknown,
   status: number = 200
 ) {
   return NextResponse.json(
@@ -98,7 +98,7 @@ export function createAuthResponse(
 export function createErrorResponse(
   message: string,
   status: number = 400,
-  details?: any
+  details?: unknown
 ) {
   return NextResponse.json(
     {
@@ -111,7 +111,7 @@ export function createErrorResponse(
   );
 }
 
-export function createSuccessResponse(data: any, message?: string) {
+export function createSuccessResponse(data: unknown, message?: string) {
   return NextResponse.json({
     success: true,
     data,

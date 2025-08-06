@@ -21,14 +21,9 @@ interface RecipeGeneratorProps {
 
 export function RecipeGenerator({ onRecipeSaved }: RecipeGeneratorProps) {
   const [ingredients, setIngredients] = useState<string[]>([]);
-  const [isGenerating, setIsGenerating] = useState(false);
 
   const handleIngredientsChange = (newIngredients: string[]) => {
     setIngredients(newIngredients);
-  };
-
-  const handleStartGeneration = () => {
-    setIsGenerating(true);
   };
 
   const handleSaveRecipe = (recipe: { title: string; ingredients: string[]; content: string }) => {
@@ -82,7 +77,6 @@ export function RecipeGenerator({ onRecipeSaved }: RecipeGeneratorProps) {
             <IngredientInput
               ingredients={ingredients}
               onIngredientsChange={handleIngredientsChange}
-              disabled={isGenerating}
               maxIngredients={VALIDATION.MAX_INGREDIENTS}
             />
           </div>
@@ -96,7 +90,7 @@ export function RecipeGenerator({ onRecipeSaved }: RecipeGeneratorProps) {
             <TiltCard className="recipe-card-3d tips-card-bg p-6">
             <div className="flex items-center gap-3 mb-4">
               <span className="text-xl">👨‍🍳</span>
-              <h3 className="text-lg font-semibold font-recipe-title text-foreground">Chef's Tips</h3>
+              <h3 className="text-lg font-semibold font-recipe-title text-foreground">Chef&apos;s Tips</h3>
             </div>
             <ul className="text-sm text-muted-foreground space-y-3 font-recipe-content">
               <li className="flex items-start gap-3">
@@ -138,8 +132,7 @@ export function RecipeGenerator({ onRecipeSaved }: RecipeGeneratorProps) {
           <TiltCard className="recipe-card-3d recipe-display-card p-8">
             <RecipeDisplay
               ingredients={ingredients}
-              onStartGeneration={handleStartGeneration}
-              isGenerating={isGenerating}
+              isGenerating={false}
               onSaveRecipe={handleSaveRecipe}
             />
           </TiltCard>

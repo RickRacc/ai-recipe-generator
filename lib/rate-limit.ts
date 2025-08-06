@@ -17,6 +17,18 @@ const rateLimiterValidation = new RateLimiterMemory({
   duration: 60, // 1 minute
 });
 
+interface RateLimiterRejection {
+  msBeforeNext: number;
+  remainingHits?: number;
+  totalHits?: number;
+}
+
+interface RateLimiterResult {
+  msBeforeNext: number;
+  remainingPoints: number;
+  totalHits: number;
+}
+
 export type RateLimitResult = {
   allowed: boolean;
   limit: number;
@@ -35,8 +47,9 @@ export async function checkRateLimit(
   try {
     const result = await limiter.get(key);
     const limit = isAuthenticated ? RATE_LIMITS.USER_REQUESTS_PER_HOUR : RATE_LIMITS.GUEST_REQUESTS_PER_HOUR;
-    const remaining = Math.max(0, limit - ((result as any)?.totalHits || 0));
-    const resetTime = new Date(Date.now() + ((result as any)?.msBeforeNext || 0));
+    const rateLimiterData = result as unknown as RateLimiterResult;
+    const remaining = Math.max(0, limit - (rateLimiterData?.totalHits || 0));
+    const resetTime = new Date(Date.now() + (rateLimiterData?.msBeforeNext || 0));
     
     return {
       allowed: true,
@@ -44,15 +57,16 @@ export async function checkRateLimit(
       remaining: remaining - 1, // Account for current request
       resetTime,
     };
-  } catch (rejRes: any) {
-    const secs = Math.round(rejRes.msBeforeNext / 1000) || 1;
+  } catch (rejRes: unknown) {
+    const rejection = rejRes as RateLimiterRejection;
+    const secs = Math.round(rejection.msBeforeNext / 1000) || 1;
     const limit = isAuthenticated ? RATE_LIMITS.USER_REQUESTS_PER_HOUR : RATE_LIMITS.GUEST_REQUESTS_PER_HOUR;
     
     return {
       allowed: false,
       limit,
       remaining: 0,
-      resetTime: new Date(Date.now() + rejRes.msBeforeNext),
+      resetTime: new Date(Date.now() + rejection.msBeforeNext),
       retryAfter: secs,
     };
   }
@@ -68,8 +82,9 @@ export async function consumeRateLimit(
   try {
     const result = await limiter.consume(key);
     const limit = isAuthenticated ? RATE_LIMITS.USER_REQUESTS_PER_HOUR : RATE_LIMITS.GUEST_REQUESTS_PER_HOUR;
-    const remaining = Math.max(0, limit - (result as any).totalHits);
-    const resetTime = new Date(Date.now() + (result as any).msBeforeNext);
+    const rateLimiterData = result as unknown as RateLimiterResult;
+    const remaining = Math.max(0, limit - rateLimiterData.totalHits);
+    const resetTime = new Date(Date.now() + rateLimiterData.msBeforeNext);
     
     return {
       allowed: true,
@@ -77,15 +92,16 @@ export async function consumeRateLimit(
       remaining,
       resetTime,
     };
-  } catch (rejRes: any) {
-    const secs = Math.round(rejRes.msBeforeNext / 1000) || 1;
+  } catch (rejRes: unknown) {
+    const rejection = rejRes as RateLimiterRejection;
+    const secs = Math.round(rejection.msBeforeNext / 1000) || 1;
     const limit = isAuthenticated ? RATE_LIMITS.USER_REQUESTS_PER_HOUR : RATE_LIMITS.GUEST_REQUESTS_PER_HOUR;
     
     return {
       allowed: false,
       limit,
       remaining: 0,
-      resetTime: new Date(Date.now() + rejRes.msBeforeNext),
+      resetTime: new Date(Date.now() + rejection.msBeforeNext),
       retryAfter: secs,
     };
   }
@@ -96,8 +112,9 @@ export async function checkValidationRateLimit(identifier: string): Promise<Rate
   
   try {
     const result = await rateLimiterValidation.get(key);
-    const remaining = Math.max(0, RATE_LIMITS.VALIDATION_REQUESTS_PER_MINUTE - ((result as any)?.totalHits || 0));
-    const resetTime = new Date(Date.now() + ((result as any)?.msBeforeNext || 0));
+    const rateLimiterData = result as unknown as RateLimiterResult;
+    const remaining = Math.max(0, RATE_LIMITS.VALIDATION_REQUESTS_PER_MINUTE - (rateLimiterData?.totalHits || 0));
+    const resetTime = new Date(Date.now() + (rateLimiterData?.msBeforeNext || 0));
     
     return {
       allowed: true,
@@ -105,14 +122,15 @@ export async function checkValidationRateLimit(identifier: string): Promise<Rate
       remaining: remaining - 1,
       resetTime,
     };
-  } catch (rejRes: any) {
-    const secs = Math.round(rejRes.msBeforeNext / 1000) || 1;
+  } catch (rejRes: unknown) {
+    const rejection = rejRes as RateLimiterRejection;
+    const secs = Math.round(rejection.msBeforeNext / 1000) || 1;
     
     return {
       allowed: false,
       limit: RATE_LIMITS.VALIDATION_REQUESTS_PER_MINUTE,
       remaining: 0,
-      resetTime: new Date(Date.now() + rejRes.msBeforeNext),
+      resetTime: new Date(Date.now() + rejection.msBeforeNext),
       retryAfter: secs,
     };
   }
@@ -123,8 +141,9 @@ export async function consumeValidationRateLimit(identifier: string): Promise<Ra
   
   try {
     const result = await rateLimiterValidation.consume(key);
-    const remaining = Math.max(0, RATE_LIMITS.VALIDATION_REQUESTS_PER_MINUTE - (result as any).totalHits);
-    const resetTime = new Date(Date.now() + (result as any).msBeforeNext);
+    const rateLimiterData = result as unknown as RateLimiterResult;
+    const remaining = Math.max(0, RATE_LIMITS.VALIDATION_REQUESTS_PER_MINUTE - rateLimiterData.totalHits);
+    const resetTime = new Date(Date.now() + rateLimiterData.msBeforeNext);
     
     return {
       allowed: true,
@@ -132,14 +151,15 @@ export async function consumeValidationRateLimit(identifier: string): Promise<Ra
       remaining,
       resetTime,
     };
-  } catch (rejRes: any) {
-    const secs = Math.round(rejRes.msBeforeNext / 1000) || 1;
+  } catch (rejRes: unknown) {
+    const rejection = rejRes as RateLimiterRejection;
+    const secs = Math.round(rejection.msBeforeNext / 1000) || 1;
     
     return {
       allowed: false,
       limit: RATE_LIMITS.VALIDATION_REQUESTS_PER_MINUTE,
       remaining: 0,
-      resetTime: new Date(Date.now() + rejRes.msBeforeNext),
+      resetTime: new Date(Date.now() + rejection.msBeforeNext),
       retryAfter: secs,
     };
   }

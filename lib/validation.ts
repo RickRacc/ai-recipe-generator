@@ -73,7 +73,7 @@ export function findClosestIngredient(input: string): IngredientValidation {
   const cleanInput = sanitizeInput(input);
   
   // Check for exact match
-  if (COMMON_INGREDIENTS.includes(cleanInput as any)) {
+  if (COMMON_INGREDIENTS.includes(cleanInput as typeof COMMON_INGREDIENTS[number])) {
     return { isValid: true, confidence: 1.0 };
   }
   

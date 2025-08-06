@@ -48,57 +48,65 @@ export function IngredientInput({
 
   // Debounced functions for API calls
   const debouncedFetchSuggestions = useCallback(
-    debounce(async (query: string) => {
-      if (query.length < 2) {
-        setSuggestions([]);
-        setShowSuggestions(false);
-        return;
-      }
-
-      setIsLoadingSuggestions(true);
-      try {
-        const response = await fetch(`/api/ingredients/validate?q=${encodeURIComponent(query)}`);
-        const data = await response.json();
-        
-        if (data.success) {
-          setSuggestions(data.data);
-          setShowSuggestions(true);
-          setSelectedSuggestionIndex(-1);
+    (query: string) => {
+      const fetchSuggestions = debounce(async (q: string) => {
+        if (q.length < 2) {
+          setSuggestions([]);
+          setShowSuggestions(false);
+          return;
         }
-      } catch (error) {
-        console.error('Failed to fetch suggestions:', error);
-      } finally {
-        setIsLoadingSuggestions(false);
-      }
-    }, VALIDATION.DEBOUNCE_DELAY),
+
+        setIsLoadingSuggestions(true);
+        try {
+          const response = await fetch(`/api/ingredients/validate?q=${encodeURIComponent(q)}`);
+          const data = await response.json();
+          
+          if (data.success) {
+            setSuggestions(data.data);
+            setShowSuggestions(true);
+            setSelectedSuggestionIndex(-1);
+          }
+        } catch (error) {
+          console.error('Failed to fetch suggestions:', error);
+        } finally {
+          setIsLoadingSuggestions(false);
+        }
+      }, VALIDATION.DEBOUNCE_DELAY);
+      
+      fetchSuggestions(query);
+    },
     []
   );
 
   const debouncedValidateIngredient = useCallback(
-    debounce(async (ingredient: string) => {
-      if (!ingredient.trim()) {
-        setValidationResult(null);
-        return;
-      }
-
-      setIsValidating(true);
-      try {
-        const response = await fetch('/api/ingredients/validate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ingredient }),
-        });
-        const data = await response.json();
-        
-        if (data.success) {
-          setValidationResult(data.data);
+    (ingredient: string) => {
+      const validateIngredient = debounce(async (ing: string) => {
+        if (!ing.trim()) {
+          setValidationResult(null);
+          return;
         }
-      } catch (error) {
-        console.error('Failed to validate ingredient:', error);
-      } finally {
-        setIsValidating(false);
-      }
-    }, VALIDATION.DEBOUNCE_DELAY),
+
+        setIsValidating(true);
+        try {
+          const response = await fetch('/api/ingredients/validate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ingredient: ing }),
+          });
+          const data = await response.json();
+          
+          if (data.success) {
+            setValidationResult(data.data);
+          }
+        } catch (error) {
+          console.error('Failed to validate ingredient:', error);
+        } finally {
+          setIsValidating(false);
+        }
+      }, VALIDATION.DEBOUNCE_DELAY);
+      
+      validateIngredient(ingredient);
+    },
     []
   );
 

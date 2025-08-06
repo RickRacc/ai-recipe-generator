@@ -7,6 +7,15 @@ export interface PerformanceMetric {
   url: string;
 }
 
+interface LayoutShiftEntry extends PerformanceEntry {
+  hadRecentInput: boolean;
+  value: number;
+}
+
+interface FirstInputEntry extends PerformanceEntry {
+  processingStart: number;
+}
+
 export class PerformanceMonitor {
   private static instance: PerformanceMonitor;
   private metrics: PerformanceMetric[] = [];
@@ -92,8 +101,9 @@ export class PerformanceMonitor {
     // Record CLS (Cumulative Layout Shift)
     new PerformanceObserver((entryList) => {
       for (const entry of entryList.getEntries()) {
-        if (!(entry as any).hadRecentInput) {
-          this.recordMetric('cls', (entry as any).value * 1000); // Convert to ms equivalent
+        const layoutShiftEntry = entry as LayoutShiftEntry;
+        if (!layoutShiftEntry.hadRecentInput) {
+          this.recordMetric('cls', layoutShiftEntry.value * 1000); // Convert to ms equivalent
         }
       }
     }).observe({ entryTypes: ['layout-shift'] });
@@ -101,7 +111,8 @@ export class PerformanceMonitor {
     // Record FID (First Input Delay)
     new PerformanceObserver((entryList) => {
       for (const entry of entryList.getEntries()) {
-        this.recordMetric('fid', (entry as any).processingStart - entry.startTime);
+        const firstInputEntry = entry as FirstInputEntry;
+        this.recordMetric('fid', firstInputEntry.processingStart - firstInputEntry.startTime);
       }
     }).observe({ entryTypes: ['first-input'] });
   }
@@ -138,11 +149,11 @@ export class PerformanceMonitor {
 
 // Utility functions for common performance patterns
 
-export function withPerformanceTracking<T extends (...args: any[]) => any>(
+export function withPerformanceTracking<T extends (...args: never[]) => unknown>(
   name: string,
   fn: T
 ): T {
-  return ((...args: any[]) => {
+  return ((...args: Parameters<T>) => {
     const monitor = PerformanceMonitor.getInstance();
     const startTime = performance.now();
     

@@ -1,52 +1,69 @@
-# 🍳 AI Recipe Generator
+# AI Recipe Generator
 
-<div align="center">
-  <img alt="AI Recipe Generator" src="https://via.placeholder.com/800x300?text=AI+Recipe+Generator" />
-  <h3>Transform ingredients into delicious recipes with AI</h3>
-</div>
+A sophisticated web application that transforms ingredient lists into detailed, personalized recipes using AI. Built with modern web technologies and designed for scalability, performance, and user experience.
 
-<p align="center">
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#quick-start"><strong>Quick Start</strong></a> ·
-  <a href="#tech-stack"><strong>Tech Stack</strong></a> ·
-  <a href="#deployment"><strong>Deployment</strong></a>
-</p>
-<br/>
+**🌐 [Live Demo](https://ai-recipe-generator-rakesh.vercel.app/)**
 
-## ✨ Features
+## Key Features
 
-### Core Functionality
-- **🤖 AI-Powered Recipe Generation**: Uses Claude AI to create detailed, practical recipes
-- **⚡ Real-time Streaming**: Watch recipes generate with typewriter effect
-- **🧠 Smart Ingredient Validation**: Autocomplete and validation for 500+ ingredients
-- **📚 Recipe History**: Save, search, and manage your generated recipes
-- **🔐 User Authentication**: Secure user accounts with Supabase Auth
+### Intelligent Recipe Generation
+- **AI-Powered Content Creation**: Leverages Claude AI (Anthropic) to generate creative, practical recipes from user-provided ingredients
+- **Real-time Streaming Interface**: Recipes appear with smooth typewriter effects using Server-Sent Events for enhanced user engagement
+- **Smart Ingredient Recognition**: Advanced autocomplete system with 500+ ingredient database and input validation
+- **Contextual Recipe Suggestions**: AI considers ingredient combinations, cooking methods, and dietary preferences
 
-### User Experience
-- **📱 Responsive Design**: Works seamlessly on all devices
-- **🎨 Advanced Animations**: Framer Motion and Anime.js for smooth interactions
-- **♿ Accessibility First**: Full ARIA support, keyboard navigation, screen reader friendly
-- **⚡ Performance Optimized**: Edge runtime, code splitting, optimized bundles
-- **🌙 Dark/Light Theme**: Built-in theme switching
+### Advanced User Experience
+- **Progressive Web Application**: Responsive design optimized for desktop, tablet, and mobile devices
+- **Sophisticated Animation System**: Implemented using Framer Motion and Anime.js for micro-interactions
+- **Comprehensive Accessibility**: Full ARIA compliance, keyboard navigation, and screen reader compatibility
+- **Performance Optimization**: Edge runtime deployment, code splitting, and bundle optimization for sub-second load times
+- **Theme Management**: Dynamic dark/light mode switching with system preference detection
 
-### Security & Performance
-- **🛡️ Rate Limiting**: Prevents abuse with user-based limits
-- **🔒 Input Sanitization**: XSS protection and validation
-- **🚨 Error Boundaries**: Graceful error handling throughout the app
-- **📊 Performance Monitoring**: Built-in metrics and Web Vitals tracking
+### Enterprise-Grade Security & Performance
+- **Intelligent Rate Limiting**: Redis-backed rate limiting with differentiated limits for authenticated vs. guest users
+- **Comprehensive Input Sanitization**: XSS protection, SQL injection prevention, and data validation at all entry points
+- **Robust Error Handling**: React Error Boundaries and graceful fallback mechanisms throughout the application
+- **Real-time Performance Monitoring**: Integrated Web Vitals tracking and performance metrics collection
+- **Authentication & Authorization**: Secure user management with Row Level Security (RLS) policies
 
-## 🚀 Quick Start
+### Data Management
+- **Personal Recipe Library**: Users can save, categorize, and search through their generated recipes
+- **Database Optimization**: Efficient PostgreSQL queries with proper indexing and caching strategies
+- **Real-time Synchronization**: Instant updates across devices using Supabase real-time subscriptions
+
+## Technical Architecture
+
+### Frontend Stack
+- **Next.js 15** - Modern React framework with App Router and optimization features
+- **TypeScript** - Strict type safety ensuring code reliability and developer productivity
+- **Tailwind CSS** - Utility-first CSS framework with custom design system implementation
+- **Framer Motion** - Advanced animation library for smooth transitions and micro-interactions
+- **Radix UI** - Headless, accessible UI component library for consistent user interface
+
+### Backend Infrastructure
+- **Next.js API Routes** - Serverless API endpoints with Edge Runtime for optimal performance
+- **Supabase** - Full-stack backend providing PostgreSQL database, authentication, and real-time features
+- **Claude AI (Anthropic)** - language model for recipe generation
+- **Redis (Upstash)** - High-performance caching and rate limiting infrastructure
+
+### Development & Deployment
+- **Vercel Platform** - Edge-optimized hosting with automatic scaling and global CDN
+- **ESLint & Prettier** - Code quality enforcement and consistent formatting
+- **TypeScript Strict Mode** - Enhanced type checking for production-grade code quality
+
+## Quick Start
 
 ### Prerequisites
 - Node.js 18+ and npm
 - Supabase account and project
 - Anthropic API key
+- Redis instance (Upstash recommended)
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/RickRacc/ai-recipe-generator.git
    cd ai-recipe-generator
    ```
 
@@ -55,44 +72,47 @@
    npm install
    ```
 
-3. **Set up environment variables**
-   ```bash
-   cp .env.local.example .env.local
-   ```
-   
-   Fill in your environment variables:
+3. **Environment Configuration**  
+   Configure your environment variables in .env.loval:
    ```env
    # Supabase Configuration
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY=your_supabase_anon_key
    SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+   SUPABASE_URL=your_supabase_project_url
+   SUPABASE_ANON_KEY=your_supabase_anon_key
 
    # AI Configuration
    ANTHROPIC_API_KEY=your_anthropic_api_key
 
-   # Optional: Rate Limiting
+   # Rate Limiting (Redis)
+   REDIS_URL=your_redis_connection_string
    MAX_REQUESTS_PER_HOUR_GUEST=5
    MAX_REQUESTS_PER_HOUR_USER=20
+
+   # Application Configuration
+   NEXT_PUBLIC_APP_URL=http://localhost:3000
    ```
 
-4. **Set up the database**
+4. **Database Setup**
    
-   Run this SQL in your Supabase SQL editor:
+   Execute in your Supabase SQL editor:
    ```sql
-   -- Create recipes table
+   -- Create recipes table with optimized schema
    CREATE TABLE recipes (
      id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
      user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
      title TEXT NOT NULL,
      ingredients TEXT[] NOT NULL,
      recipe_content TEXT NOT NULL,
-     created_at TIMESTAMPTZ DEFAULT now()
+     created_at TIMESTAMPTZ DEFAULT now(),
+     updated_at TIMESTAMPTZ DEFAULT now()
    );
 
-   -- Enable Row Level Security
+   -- Enable Row Level Security for data protection
    ALTER TABLE recipes ENABLE ROW LEVEL SECURITY;
 
-   -- RLS Policies
+   -- Create optimized RLS policies
    CREATE POLICY "Users can view own recipes" ON recipes
      FOR SELECT USING (auth.uid() = user_id);
 
@@ -102,60 +122,58 @@
    CREATE POLICY "Users can delete own recipes" ON recipes
      FOR DELETE USING (auth.uid() = user_id);
 
-   -- Create indexes for better performance
+   -- Performance optimization indexes
    CREATE INDEX idx_recipes_user_created ON recipes(user_id, created_at DESC);
+   CREATE INDEX idx_recipes_title_search ON recipes USING GIN(to_tsvector('english', title));
    ```
 
-5. **Start the development server**
+5. **Development Server**
    ```bash
    npm run dev
    ```
 
-6. **Open your browser**
-   
+6. **Access Application**
    Navigate to `http://localhost:3000`
 
-## 🛠️ Tech Stack
+## Deployment
 
-### Frontend
-- **Next.js 14** - React framework with App Router
-- **TypeScript** - Type safety and developer experience
-- **Tailwind CSS** - Utility-first CSS framework
-- **Framer Motion** - Animation library
-- **Anime.js** - Advanced animations
-- **Radix UI** - Accessible UI components
+### Production Deployment (Vercel)
 
-### Backend
-- **Next.js API Routes** - Serverless API endpoints
-- **Edge Runtime** - Optimal streaming performance
-- **Supabase** - Database, authentication, and real-time features
-- **Claude AI (Haiku)** - Recipe generation AI model
+1. **Repository Connection**: Connect your Git repository to Vercel
+2. **Environment Variables**: Configure production environment variables in Vercel dashboard
+3. **Automatic Deployment**: Continuous deployment on git push to main branch
 
-### Development & Deployment
-- **Vercel** - Hosting and deployment
-- **ESLint** - Code linting
-- **TypeScript** - Static type checking
-
-## 🚀 Deployment
-
-### Deploy to Vercel
-
-1. **Connect your repository** to Vercel
-2. **Configure environment variables** in Vercel dashboard
-3. **Deploy** - automatic deployments on git push
-
-### Environment Variables for Production
-Make sure to set these in your Vercel dashboard:
+### Production Environment Variables
+Configure these in your Vercel dashboard:
 - `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
 - `ANTHROPIC_API_KEY`
+- `REDIS_URL`
 
-### Health Check
-Monitor your deployment health at `/health`
+### Health Monitoring
+Application health status available at `/api/health` endpoint with comprehensive service checks.
+
+## Project Highlights for Resume
+
+### Technical Achievements
+- **Full-Stack Application**: End-to-end development using modern React/Next.js ecosystem
+- **AI Integration**: Practical implementation of large language models for content generation
+- **Performance Engineering**: Edge computing, caching strategies, and optimization techniques
+- **Security Implementation**: Comprehensive security measures including authentication, authorization, and input validation
+- **Scalable Architecture**: Designed for high availability and horizontal scaling
+
+### Key Technologies Demonstrated
+- Next.js 15 with App Router and Edge Runtime
+- TypeScript for type-safe development
+- Supabase for backend-as-a-service integration
+- Claude AI API integration with streaming responses
+- Advanced CSS with Tailwind and custom animations
+- Redis for caching and rate limiting
+- PostgreSQL with optimized queries and indexing
 
 ---
 
-**Built with ❤️ using Next.js, Supabase, and Claude AI**
-
-*Happy cooking! 🍳*
+**Built with modern web technologies for production-grade performance and scalability**

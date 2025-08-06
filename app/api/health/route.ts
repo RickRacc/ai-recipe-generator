@@ -23,7 +23,7 @@ export async function GET() {
       healthCheck,
       { status: isHealthy ? 200 : 503 }
     );
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         status: 'unhealthy',
@@ -47,7 +47,7 @@ async function checkDatabase() {
       status: hasRequiredEnvVars ? 'healthy' : 'unhealthy',
       message: hasRequiredEnvVars ? 'Connected' : 'Missing configuration',
     };
-  } catch (error) {
+  } catch {
     return {
       status: 'unhealthy',
       message: 'Connection failed',
@@ -63,7 +63,7 @@ async function checkAIService() {
       status: hasApiKey ? 'healthy' : 'unhealthy',
       message: hasApiKey ? 'API key configured' : 'Missing API key',
     };
-  } catch (error) {
+  } catch {
     return {
       status: 'unhealthy',
       message: 'Service check failed',

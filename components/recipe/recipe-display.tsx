@@ -8,17 +8,16 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ANIMATIONS } from '@/lib/constants';
 import { createClient } from '@/lib/supabase/client';
+import type { User } from '@supabase/supabase-js';
 
 interface RecipeDisplayProps {
   ingredients: string[];
-  onStartGeneration: () => void;
   isGenerating: boolean;
   onSaveRecipe?: (recipe: { title: string; ingredients: string[]; content: string }) => void;
 }
 
 export function RecipeDisplay({ 
   ingredients, 
-  onStartGeneration, 
   isGenerating,
   onSaveRecipe 
 }: RecipeDisplayProps) {
@@ -30,13 +29,14 @@ export function RecipeDisplay({
   const [isSaved, setIsSaved] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [showCursor, setShowCursor] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   
   const eventSourceRef = useRef<EventSource | null>(null);
   const typewriterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const cursorIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const supabase = createClient();
 
   // Get user on component mount
@@ -59,8 +59,13 @@ export function RecipeDisplay({
 
   // Typewriter effect with cursor
   const startTypewriter = useCallback((content: string) => {
+    if (typewriterTimeoutRef.current) {
+      clearTimeout(typewriterTimeoutRef.current);
+    }
+    
     let index = 0;
     setDisplayedContent('');
+    setIsTyping(true);
     setShowCursor(true);
     
     const type = () => {
@@ -69,6 +74,7 @@ export function RecipeDisplay({
         index++;
         typewriterTimeoutRef.current = setTimeout(type, ANIMATIONS.TYPING_SPEED);
       } else {
+        setIsTyping(false);
         setShowCursor(false);
       }
     };
@@ -76,20 +82,26 @@ export function RecipeDisplay({
     type();
   }, []);
 
-  // Start cursor blinking
+  // Start cursor blinking during typing
   useEffect(() => {
-    if (showCursor) {
+    if (isTyping || showCursor) {
       cursorIntervalRef.current = setInterval(() => {
         setShowCursor(prev => !prev);
       }, ANIMATIONS.CURSOR_BLINK_RATE);
+    } else {
+      if (cursorIntervalRef.current) {
+        clearInterval(cursorIntervalRef.current);
+        cursorIntervalRef.current = null;
+      }
     }
     
     return () => {
       if (cursorIntervalRef.current) {
         clearInterval(cursorIntervalRef.current);
+        cursorIntervalRef.current = null;
       }
     };
-  }, [isGenerating]);
+  }, [isTyping, showCursor]);
 
   // Generate recipe with streaming
   const generateRecipe = useCallback(async () => {
@@ -148,7 +160,6 @@ export function RecipeDisplay({
               
               if (data.type === 'chunk') {
                 accumulatedContent += data.content;
-                setDisplayedContent(accumulatedContent);
                 
                 // Extract title from first heading
                 if (!recipeTitle && accumulatedContent.includes('#')) {
@@ -159,11 +170,12 @@ export function RecipeDisplay({
                 }
               } else if (data.type === 'complete') {
                 setFullContent(data.content);
-                setDisplayedContent(data.content);
-                setShowCursor(false);
+                // Start typewriter effect with the complete content
+                startTypewriter(data.content);
               } else if (data.type === 'error') {
                 setError(data.message);
                 setShowCursor(false);
+                setIsTyping(false);
               }
             } catch (parseError) {
               console.error('Failed to parse SSE data:', parseError);
@@ -171,16 +183,17 @@ export function RecipeDisplay({
           }
         }
       }
-    } catch (error: any) {
-      if (error.name === 'AbortError') {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'AbortError') {
         setError('Recipe generation was cancelled.');
       } else {
         setError('Network error. Please check your connection and try again.');
       }
     } finally {
       setShowCursor(false);
+      setIsTyping(false);
     }
-  }, [ingredients, recipeTitle]);
+  }, [ingredients, startTypewriter, recipeTitle]);
 
   // Auto-generate when ingredients change and minimum reached
   useEffect(() => {
@@ -221,7 +234,7 @@ export function RecipeDisplay({
       } else {
         setError(data.error || 'Failed to save recipe');
       }
-    } catch (error) {
+    } catch {
       setError('Failed to save recipe. Please try again.');
     } finally {
       setIsSaving(false);
@@ -234,7 +247,7 @@ export function RecipeDisplay({
       await navigator.clipboard.writeText(fullContent || displayedContent);
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
-    } catch (error) {
+    } catch {
       setError('Failed to copy to clipboard');
     }
   };
@@ -251,6 +264,7 @@ export function RecipeDisplay({
       clearTimeout(typewriterTimeoutRef.current);
     }
     setShowCursor(false);
+    setIsTyping(false);
   };
 
   // Cleanup on unmount

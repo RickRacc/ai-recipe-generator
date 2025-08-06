@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Filter, Trash2, Eye, Calendar, Clock, ChefHat, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -43,7 +43,7 @@ export function RecipeHistory({ onRecipeSelect, className = '' }: RecipeHistoryP
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
 
   // Fetch recipes from API
-  const fetchRecipes = async (page = 1, search = searchQuery) => {
+  const fetchRecipes = useCallback(async (page = 1, search = searchQuery) => {
     try {
       setIsLoading(true);
       setError(null);
@@ -72,15 +72,15 @@ export function RecipeHistory({ onRecipeSelect, className = '' }: RecipeHistoryP
       } else {
         throw new Error(data.error || 'Failed to fetch recipes');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to fetch recipes:', error);
-      setError(error.message);
+      setError(error instanceof Error ? error.message : 'Failed to fetch recipes');
       setRecipes([]);
       setPagination(null);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [searchQuery, sortBy, sortOrder]);
 
   // Delete recipe
   const deleteRecipe = async (recipeId: string) => {
@@ -112,9 +112,9 @@ export function RecipeHistory({ onRecipeSelect, className = '' }: RecipeHistoryP
           } : null);
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to delete recipe:', error);
-      setError(error.message);
+      setError(error instanceof Error ? error.message : 'Failed to delete recipe');
     } finally {
       setDeletingIds(prev => {
         const newSet = new Set(prev);
@@ -144,7 +144,7 @@ export function RecipeHistory({ onRecipeSelect, className = '' }: RecipeHistoryP
   // Initial load and when sort changes
   useEffect(() => {
     fetchRecipes();
-  }, [sortBy, sortOrder]);
+  }, [sortBy, sortOrder, fetchRecipes]);
 
   return (
     <div className={`space-y-6 ${className}`}>
