@@ -132,6 +132,45 @@ export function RecipeHistory({ onRecipeSelect, className = '' }: RecipeHistoryP
     return elements;
   };
 
+  // Format recipe content for preview card
+  const formatRecipePreview = (content: string) => {
+    if (!content) return '';
+
+    // Remove the title from the beginning if it exists
+    let formatted = content;
+    const allLines = formatted.split('\n');
+    let startIndex = 0;
+    
+    // Check if first line is a title (either numbered or markdown)
+    if (allLines[0]) {
+      const firstLine = allLines[0].trim();
+      const isNumberedTitle = /^1\.\s*/.test(firstLine);
+      const isMarkdownTitle = /^#\s*/.test(firstLine);
+      
+      if (isNumberedTitle || isMarkdownTitle) {
+        startIndex = 1; // Skip the first line
+        // Also skip any empty lines after the title
+        while (startIndex < allLines.length && !allLines[startIndex].trim()) {
+          startIndex++;
+        }
+      }
+    }
+    
+    // Use content without the title
+    formatted = allLines.slice(startIndex).join('\n');
+
+    // Remove numbering from all lines (2. Prep Time, 3. Instructions, etc.)
+    formatted = formatted.replace(/^\d+\.\s*/gm, '');
+    
+    // Remove markdown characters
+    formatted = formatted.replace(/[#*]/g, '');
+    
+    // Clean up multiple spaces and newlines
+    formatted = formatted.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
+
+    return formatted;
+  };
+
   // Fetch recipes from API
   const fetchRecipes = useCallback(async (page = 1, search = searchQuery) => {
     try {
@@ -385,6 +424,7 @@ export function RecipeHistory({ onRecipeSelect, className = '' }: RecipeHistoryP
                 }}
                 onDelete={() => deleteRecipe(recipe.id)}
                 isDeleting={deletingIds.has(recipe.id)}
+                formatPreview={formatRecipePreview}
               />
             </motion.div>
           ))}
@@ -494,9 +534,10 @@ interface RecipeCardProps {
   onSelect: () => void;
   onDelete: () => void;
   isDeleting: boolean;
+  formatPreview: (content: string) => string;
 }
 
-function RecipeCard({ recipe, onSelect, onDelete, isDeleting }: RecipeCardProps) {
+function RecipeCard({ recipe, onSelect, onDelete, isDeleting, formatPreview }: RecipeCardProps) {
   return (
     <Card className="group cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02]">
       <div className="p-4 space-y-3">
@@ -531,7 +572,7 @@ function RecipeCard({ recipe, onSelect, onDelete, isDeleting }: RecipeCardProps)
         </div>
 
         <p className="text-sm text-muted-foreground line-clamp-2">
-          {truncate(recipe.recipe_content.replace(/[#*\n]/g, ' '), 100)}
+          {truncate(formatPreview(recipe.recipe_content), 100)}
         </p>
 
         <div className="flex items-center gap-2 pt-2">

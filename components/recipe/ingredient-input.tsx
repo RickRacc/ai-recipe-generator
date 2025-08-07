@@ -43,6 +43,7 @@ export function IngredientInput({
   const [isValidating, setIsValidating] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
+  const [duplicateMessage, setDuplicateMessage] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
@@ -213,6 +214,7 @@ export function IngredientInput({
     // Clear stale validation state when input changes
     if (value !== inputValue) {
       setValidationResult(null);
+      setDuplicateMessage(null); // Clear duplicate message when user starts typing
     }
     debouncedFetchSuggestions(value);
     debouncedValidateIngredient(value);
@@ -223,7 +225,13 @@ export function IngredientInput({
     const trimmed = ingredient.trim().toLowerCase();
     
     if (!trimmed) return;
-    if (ingredients.includes(trimmed)) return;
+    
+    // Check for duplicates and show message
+    if (ingredients.includes(trimmed)) {
+      setDuplicateMessage(`"${ingredient.trim()}" is already added`);
+      return;
+    }
+    
     if (ingredients.length >= maxIngredients) return;
 
     // Always validate the current ingredient being added (ignore potentially stale validationResult)
@@ -238,6 +246,7 @@ export function IngredientInput({
     setSuggestions([]);
     setShowSuggestions(false);
     setValidationResult(null);
+    setDuplicateMessage(null); // Clear duplicate message on successful add
     inputRef.current?.focus();
   };
 
@@ -245,7 +254,15 @@ export function IngredientInput({
     const trimmed = ingredient.trim().toLowerCase();
     
     if (!trimmed) return;
-    if (ingredients.includes(trimmed)) return;
+    
+    // Check for duplicates and show message
+    if (ingredients.includes(trimmed)) {
+      setDuplicateMessage(`"${ingredient.trim()}" is already added`);
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+    
     if (ingredients.length >= maxIngredients) return;
 
     // Skip validation for suggestions - they're already validated
@@ -254,6 +271,7 @@ export function IngredientInput({
     setSuggestions([]);
     setShowSuggestions(false);
     setValidationResult(null);
+    setDuplicateMessage(null); // Clear duplicate message on successful add
     inputRef.current?.focus();
   };
 
@@ -359,7 +377,8 @@ export function IngredientInput({
             onFocus={() => inputValue.length >= 2 && setShowSuggestions(true)}
             placeholder={canAddMore ? "Type an ingredient..." : "Maximum ingredients reached"}
             disabled={disabled || !canAddMore}
-            className={`pr-20 ${
+            className={`${duplicateMessage ? 'pr-48' : 'pr-20'} ${
+              duplicateMessage ? 'border-orange-500' :
               validationResult?.isValid === false ? 'border-red-500' : 
               validationResult?.isValid === true ? 'border-green-500' : ''
             }`}
@@ -370,11 +389,17 @@ export function IngredientInput({
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             )}
             
-            {validationResult?.isValid === true && (
+            {duplicateMessage && (
+              <span className="text-xs text-orange-600 mr-1 max-w-40 whitespace-nowrap">
+                {duplicateMessage}
+              </span>
+            )}
+            
+            {!duplicateMessage && validationResult?.isValid === true && (
               <Check className="h-4 w-4 text-green-500" />
             )}
             
-            {validationResult?.isValid === false && (
+            {!duplicateMessage && validationResult?.isValid === false && (
               <AlertCircle className="h-4 w-4 text-red-500" />
             )}
             
@@ -382,7 +407,7 @@ export function IngredientInput({
               size="sm"
               variant="ghost"
               onClick={() => addIngredient(inputValue)}
-              disabled={disabled || !inputValue.trim() || !canAddMore}
+              disabled={disabled || !inputValue.trim() || !canAddMore || !!duplicateMessage}
               className="h-6 w-6 p-0"
             >
               <Plus className="h-3 w-3" />
@@ -449,6 +474,7 @@ export function IngredientInput({
             </button>
           </motion.div>
         )}
+
       </div>
 
       {/* Ingredients List */}
