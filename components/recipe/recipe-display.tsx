@@ -34,6 +34,7 @@ export function RecipeDisplay({
 
   const hasStartedTypingRef = useRef(false);
   const hasGeneratedRef = useRef(false);
+  const isGeneratingRef = useRef(false);
   
   const eventSourceRef = useRef<EventSource | null>(null);
   const typewriterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -117,7 +118,14 @@ export function RecipeDisplay({
       return;
     }
 
+    // Prevent multiple simultaneous requests
+    if (isGeneratingRef.current) {
+      console.log('Generation already in progress, skipping...');
+      return;
+    }
+
     console.log('Starting recipe generation...');
+    isGeneratingRef.current = true;
     setError(null);
     setDisplayedContent('');
     setFullContent('');
@@ -143,10 +151,15 @@ export function RecipeDisplay({
         const errorData = await response.json().catch(() => ({}));
         
         if (response.status === 429) {
-          setError(`Rate limit exceeded. Please try again in ${errorData.details?.retryAfter || 60} seconds.`);
+          const retryAfter = errorData.details?.retryAfter || 60;
+          setError(`Rate limit exceeded. Please wait ${retryAfter} seconds before trying again.`);
+          console.warn('Rate limited, retrying after:', retryAfter);
+        } else if (response.status === 500) {
+          setError('Server error occurred. Please try again in a moment.');
+          console.error('Server error:', errorData);
         } else {
-          setError('Failed to generate recipe. Please try again.');
-          //console.log("Error response received:", errorData, response)
+          setError(`Request failed (${response.status}). Please try again.`);
+          console.error("Error response received:", errorData, response);
         }
         return;
       }
@@ -159,13 +172,12 @@ export function RecipeDisplay({
       // console.log('Starting to read streaming response...');
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-      let accumulatedContent = '';
 
       while (true) {
         const { done, value } = await reader.read();
         
         if (done) {
-          //onsole.log('Stream finished, accumulated content length:', accumulatedContent.length);
+          // console.log('Stream finished');
           break;
         }
         
@@ -208,37 +220,40 @@ export function RecipeDisplay({
                 setIsTyping(false);
               }
             } catch (parseError) {
-              // console.error('Failed to parse SSE data:', parseError, 'Line was:', line);
+              console.error('Failed to parse SSE data:', parseError, 'Line was:', line);
             }
           }
         }
       }
     } catch (error: unknown) {
+      console.error('Recipe generation error:', error);
       if (error instanceof Error && error.name === 'AbortError') {
         setError('Recipe generation was cancelled.');
+      } else if (error instanceof Error) {
+        setError(`Network error: ${error.message}`);
       } else {
         setError('Network error. Please check your connection and try again.');
       }
     } finally {
+      isGeneratingRef.current = false;
       setShowCursor(false);
       setIsTyping(false);
     }
   }, [ingredients, startTypewriter, recipeTitle]);
 
-  // Auto-generate when ingredients change and minimum reached
+  // Reset when ingredients change
   useEffect(() => {
-    // Reset generation flag when ingredients change
     hasGeneratedRef.current = false;
-    
-    // Clear displayed content when ingredients change
-    if (displayedContent) {
-      setDisplayedContent('');
-      setFullContent('');
-      setRecipeTitle('');
-    }
-    
-    // Auto-generate if conditions are met
-    if (ingredients.length >= 3 && !isGenerating && !hasGeneratedRef.current) {
+    isGeneratingRef.current = false;
+    setDisplayedContent('');
+    setFullContent('');
+    setRecipeTitle('');
+    setError(null);
+  }, [ingredients]);
+
+  // Auto-generate when conditions are met
+  useEffect(() => {
+    if (ingredients.length >= 3 && !isGenerating && !hasGeneratedRef.current && !displayedContent) {
       hasGeneratedRef.current = true;
       generateRecipe();
     }
@@ -305,6 +320,8 @@ export function RecipeDisplay({
     if (typewriterTimeoutRef.current) {
       clearTimeout(typewriterTimeoutRef.current);
     }
+    isGeneratingRef.current = false;
+    hasGeneratedRef.current = false;
     setShowCursor(false);
     setIsTyping(false);
   };

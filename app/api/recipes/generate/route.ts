@@ -84,8 +84,37 @@ Please format the recipe clearly with sections for ingredients (with measurement
 
     // Create streaming response
     const encoder = new TextEncoder();
+    let isControllerClosed = false;
+    
     const stream = new ReadableStream({
       async start(controller) {
+        // Helper function to safely enqueue data
+        const safeEnqueue = (data: Uint8Array) => {
+          try {
+            if (!isControllerClosed) {
+              controller.enqueue(data);
+              return true;
+            }
+          } catch (error) {
+            console.error('Failed to enqueue data:', error);
+            isControllerClosed = true;
+          }
+          return false;
+        };
+
+        // Helper function to safely close controller
+        const safeClose = () => {
+          try {
+            if (!isControllerClosed) {
+              controller.close();
+              isControllerClosed = true;
+            }
+          } catch (error) {
+            console.error('Failed to close controller:', error);
+            isControllerClosed = true;
+          }
+        };
+
         try {
           console.log('Starting Anthropic stream with config:', ANTHROPIC_CONFIG);
           const stream = anthropic.messages.stream({
@@ -119,12 +148,13 @@ Please format the recipe clearly with sections for ingredients (with measurement
               timestamp: new Date().toISOString(),
             });
             
-            controller.enqueue(encoder.encode(`data: ${finalData}\n\n`));
-            controller.close();
+            if (safeEnqueue(encoder.encode(`data: ${finalData}\n\n`))) {
+              safeClose();
+            }
           });
 
           stream.on('error', (error) => {
-            // console.error('Streaming error:', error);
+            console.error('Streaming error:', error);
             
             const errorData = JSON.stringify({
               type: 'error',
@@ -132,12 +162,13 @@ Please format the recipe clearly with sections for ingredients (with measurement
               timestamp: new Date().toISOString(),
             });
             
-            controller.enqueue(encoder.encode(`data: ${errorData}\n\n`));
-            controller.close();
+            if (safeEnqueue(encoder.encode(`data: ${errorData}\n\n`))) {
+              safeClose();
+            }
           });
 
         } catch (error) {
-          // console.error('Recipe generation error:', error);
+          console.error('Recipe generation error:', error);
           
           const errorData = JSON.stringify({
             type: 'error',
@@ -145,8 +176,9 @@ Please format the recipe clearly with sections for ingredients (with measurement
             timestamp: new Date().toISOString(),
           });
           
-          controller.enqueue(encoder.encode(`data: ${errorData}\n\n`));
-          controller.close();
+          if (safeEnqueue(encoder.encode(`data: ${errorData}\n\n`))) {
+            safeClose();
+          }
         }
       },
     });
