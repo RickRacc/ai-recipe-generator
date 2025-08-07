@@ -241,23 +241,29 @@ export function RecipeDisplay({
     }
   }, [ingredients, startTypewriter, recipeTitle]);
 
-  // Reset when ingredients change
+  // Single auto-generation effect - only triggers when ingredients change
   useEffect(() => {
+    // Reset all state when ingredients change
     hasGeneratedRef.current = false;
     isGeneratingRef.current = false;
     setDisplayedContent('');
     setFullContent('');
     setRecipeTitle('');
     setError(null);
-  }, [ingredients]);
 
-  // Auto-generate when conditions are met
-  useEffect(() => {
-    if (ingredients.length >= 3 && !isGenerating && !hasGeneratedRef.current && !displayedContent) {
-      hasGeneratedRef.current = true;
-      generateRecipe();
+    // Auto-generate if we have enough ingredients
+    if (ingredients.length >= 3) {
+      // Use setTimeout to ensure state updates have completed
+      const timeoutId = setTimeout(() => {
+        if (!hasGeneratedRef.current && !isGeneratingRef.current) {
+          hasGeneratedRef.current = true;
+          generateRecipe();
+        }
+      }, 100);
+      
+      return () => clearTimeout(timeoutId);
     }
-  }, [ingredients, isGenerating, generateRecipe, displayedContent]);
+  }, [ingredients, generateRecipe]);
 
   // Save recipe to database
   const saveRecipe = async () => {
