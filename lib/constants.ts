@@ -19,7 +19,7 @@ Keep recipes realistic and achievable for home cooks. Use proper cooking techniq
 export const RATE_LIMITS = {
   GUEST_REQUESTS_PER_HOUR: parseInt(process.env.MAX_REQUESTS_PER_HOUR_GUEST || '5'),
   USER_REQUESTS_PER_HOUR: parseInt(process.env.MAX_REQUESTS_PER_HOUR_USER || '20'),
-  VALIDATION_REQUESTS_PER_MINUTE: 30,
+  VALIDATION_REQUESTS_PER_MINUTE: 500,
 } as const;
 
 // Animation Settings
@@ -120,7 +120,7 @@ export const VALIDATION = {
   MIN_INGREDIENTS: 3,
   MAX_INGREDIENTS: 15,
   MAX_INGREDIENT_LENGTH: 50,
-  DEBOUNCE_DELAY: 300, // milliseconds
+  DEBOUNCE_DELAY: 250, // milliseconds
 } as const;
 
 // UI Constants

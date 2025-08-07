@@ -32,13 +32,13 @@ export async function getUser() {
     const { data: { user }, error } = await supabase.auth.getUser();
     
     if (error) {
-      console.error('Auth error:', error);
+      // console.error('Auth error:', error);
       return null;
     }
     
     return user;
   } catch (error) {
-    console.error('Failed to get user:', error);
+    // console.error('Failed to get user:', error);
     return null;
   }
 }
@@ -67,13 +67,13 @@ export async function getUserFromRequest(request: NextRequest) {
     const { data: { user }, error } = await supabase.auth.getUser();
     
     if (error) {
-      console.error('Auth error:', error);
+      // console.error('Auth error:', error);
       return { user: null, response };
     }
     
     return { user, response };
   } catch (error) {
-    console.error('Failed to get user from request:', error);
+    // console.error('Failed to get user from request:', error);
     return { user: null, response };
   }
 }

@@ -114,29 +114,35 @@ export function IngredientInput({
         setIsLoadingSuggestions(true);
         try {
           const response = await fetch(`/api/ingredients/validate?q=${encodeURIComponent(q)}`);
-          console.log('Suggestions API response status:', response.status);
+          // console.log('Suggestions API response status:', response.status);
           
           if (!response.ok) {
-            console.error('Suggestions API error:', response.status, await response.text());
+            // console.error('Suggestions API error:', response.status, await response.text());
+            // If rate limited, fallback to offline suggestions
+            if (response.status === 429) {
+              const fallbackSuggestions = getSuggestionsOffline(q);
+              setSuggestions(fallbackSuggestions);
+              setShowSuggestions(fallbackSuggestions.length > 0);
+            }
             return;
           }
           
           const data = await response.json();
-          console.log('Suggestions API data:', data);
+          // console.log('Suggestions API data:', data);
           
           if (data.success) {
             setSuggestions(data.data);
             setShowSuggestions(true);
             setSelectedSuggestionIndex(-1);
           } else {
-            console.error('Suggestions API returned error:', data);
+            // console.error('Suggestions API returned error:', data);
             // Fallback to offline suggestions
             const fallbackSuggestions = getSuggestionsOffline(q);
             setSuggestions(fallbackSuggestions);
             setShowSuggestions(fallbackSuggestions.length > 0);
           }
         } catch (error) {
-          console.error('Failed to fetch suggestions:', error);
+          // console.error('Failed to fetch suggestions:', error);
           // Fallback to offline suggestions
           const fallbackSuggestions = getSuggestionsOffline(q);
           setSuggestions(fallbackSuggestions);
@@ -166,25 +172,29 @@ export function IngredientInput({
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ingredient: ing }),
           });
-          console.log('Validation API response status:', response.status);
+          // console.log('Validation API response status:', response.status);
           
           if (!response.ok) {
-            console.error('Validation API error:', response.status, await response.text());
+            // console.error('Validation API error:', response.status, await response.text());
+            // If rate limited, fallback to offline validation
+            if (response.status === 429) {
+              setValidationResult(validateIngredientOffline(ing));
+            }
             return;
           }
           
           const data = await response.json();
-          console.log('Validation API data:', data);
+          // console.log('Validation API data:', data);
           
           if (data.success) {
             setValidationResult(data.data);
           } else {
-            console.error('Validation API returned error:', data);
+            // console.error('Validation API returned error:', data);
             // Fallback to offline validation
             setValidationResult(validateIngredientOffline(ing));
           }
         } catch (error) {
-          console.error('Failed to validate ingredient:', error);
+          // console.error('Failed to validate ingredient:', error);
           // Fallback to offline validation
           setValidationResult(validateIngredientOffline(ing));
         } finally {
@@ -215,10 +225,26 @@ export function IngredientInput({
     // Check validation before adding
     const validation = validationResult || validateIngredientOffline(trimmed);
     if (!validation.isValid) {
-      console.log('Cannot add invalid ingredient:', trimmed, validation.errors);
+      // console.log('Cannot add invalid ingredient:', trimmed, validation.errors);
       return;
     }
 
+    onIngredientsChange([...ingredients, trimmed]);
+    setInputValue('');
+    setSuggestions([]);
+    setShowSuggestions(false);
+    setValidationResult(null);
+    inputRef.current?.focus();
+  };
+
+  const addSuggestedIngredient = (ingredient: string) => {
+    const trimmed = ingredient.trim().toLowerCase();
+    
+    if (!trimmed) return;
+    if (ingredients.includes(trimmed)) return;
+    if (ingredients.length >= maxIngredients) return;
+
+    // Skip validation for suggestions - they're already validated
     onIngredientsChange([...ingredients, trimmed]);
     setInputValue('');
     setSuggestions([]);
@@ -412,7 +438,7 @@ export function IngredientInput({
           >
             Did you mean &quot;{validationResult.suggestion}&quot;?{' '}
             <button
-              onClick={() => addIngredient(validationResult.suggestion!)}
+              onClick={() => addSuggestedIngredient(validationResult.suggestion!)}
               className="underline hover:no-underline"
             >
               Use this

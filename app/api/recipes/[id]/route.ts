@@ -7,7 +7,7 @@ import type { Database } from '@/types/supabase';
 try {
   validateEnvVars();
 } catch (error) {
-  console.error('Environment validation failed:', error);
+  // console.error('Environment validation failed:', error);
 }
 
 const supabase = createClient<Database>(
@@ -48,7 +48,7 @@ export async function GET(
       if (error.code === 'PGRST116') {
         return createErrorResponse('Recipe not found', 404);
       }
-      console.error('Database error:', error);
+      // console.error('Database error:', error);
       return createErrorResponse(
         'Failed to fetch recipe',
         500,
@@ -59,7 +59,7 @@ export async function GET(
     return createSuccessResponse(recipe);
 
   } catch (error) {
-    console.error('Get recipe error:', error);
+    // console.error('Get recipe error:', error);
     return createErrorResponse(
       'Internal server error. Please try again later.',
       500
@@ -101,7 +101,7 @@ export async function DELETE(
       if (error.code === 'PGRST116') {
         return createErrorResponse('Recipe not found', 404);
       }
-      console.error('Database error:', error);
+      // console.error('Database error:', error);
       return createErrorResponse(
         'Failed to delete recipe',
         500,
@@ -112,7 +112,7 @@ export async function DELETE(
     return createSuccessResponse(data, 'Recipe deleted successfully');
 
   } catch (error) {
-    console.error('Delete recipe error:', error);
+    // console.error('Delete recipe error:', error);
     return createErrorResponse(
       'Internal server error. Please try again later.',
       500

@@ -105,14 +105,14 @@ export function RecipeDisplay({
 
   // Generate recipe with streaming
   const generateRecipe = useCallback(async () => {
-    console.log('generateRecipe called with ingredients:', ingredients);
+    // console.log('generateRecipe called with ingredients:', ingredients);
     
     if (ingredients.length < 3) {
-      console.log('Not enough ingredients, need at least 3');
+      // console.log('Not enough ingredients, need at least 3');
       return;
     }
 
-    console.log('Starting recipe generation...');
+    // console.log('Starting recipe generation...');
     setError(null);
     setDisplayedContent('');
     setFullContent('');
@@ -123,7 +123,7 @@ export function RecipeDisplay({
     try {
       abortControllerRef.current = new AbortController();
       
-      console.log('Making request to /api/recipes/generate with:', { ingredients });
+      // console.log('Making request to /api/recipes/generate with:', { ingredients });
       const response = await fetch('/api/recipes/generate', {
         method: 'POST',
         headers: {
@@ -132,7 +132,7 @@ export function RecipeDisplay({
         body: JSON.stringify({ ingredients }),
         signal: abortControllerRef.current.signal,
       });
-      console.log('Response received:', response.status, response.ok);
+      // console.log('Response received:', response.status, response.ok);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -146,11 +146,11 @@ export function RecipeDisplay({
       }
 
       if (!response.body) {
-        console.error('No response body received');
+        // console.error('No response body received');
         throw new Error('No response body');
       }
 
-      console.log('Starting to read streaming response...');
+      // console.log('Starting to read streaming response...');
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let accumulatedContent = '';
@@ -164,32 +164,32 @@ export function RecipeDisplay({
         }
         
         const chunk = decoder.decode(value, { stream: true });
-        console.log('Received chunk:', chunk);
+        // console.log('Received chunk:', chunk);
         const lines = chunk.split('\n');
         
         for (const line of lines) {
-          console.log('Processing line:', line);
+          // console.log('Processing line:', line);
           if (line.startsWith('data: ')) {
             try {
               const dataStr = line.slice(6);
-              console.log('Parsing SSE data:', dataStr);
+              // console.log('Parsing SSE data:', dataStr);
               const data = JSON.parse(dataStr);
-              console.log('Parsed SSE data:', data);
+              // console.log('Parsed SSE data:', data);
               
               if (data.type === 'chunk') {
-                console.log('Received chunk:', data.content);
+                // console.log('Received chunk:', data.content);
                 accumulatedContent += data.content;
                 
                 // Extract title from first heading
                 if (!recipeTitle && accumulatedContent.includes('#')) {
                   const titleMatch = accumulatedContent.match(/# (.+)/);
                   if (titleMatch) {
-                    console.log('Found recipe title:', titleMatch[1].trim());
+                    // console.log('Found recipe title:', titleMatch[1].trim());
                     setRecipeTitle(titleMatch[1].trim());
                   }
                 }
               } else if (data.type === 'complete') {
-                console.log('Recipe generation complete, content length:', data.content.length);
+                // console.log('Recipe generation complete, content length:', data.content.length);
                 setFullContent(data.content);
                 // Start typewriter effect with the complete content
                 startTypewriter(data.content);
@@ -200,7 +200,7 @@ export function RecipeDisplay({
                 setIsTyping(false);
               }
             } catch (parseError) {
-              console.error('Failed to parse SSE data:', parseError, 'Line was:', line);
+              // console.error('Failed to parse SSE data:', parseError, 'Line was:', line);
             }
           }
         }
@@ -219,15 +219,15 @@ export function RecipeDisplay({
 
   // Auto-generate when ingredients change and minimum reached
   useEffect(() => {
-    console.log('Auto-generation check:', {
-      ingredientsLength: ingredients.length,
-      isGenerating,
-      hasDisplayedContent: !!displayedContent,
-      ingredients
-    });
+    // console.log('Auto-generation check:', {
+    //   ingredientsLength: ingredients.length,
+    //   isGenerating,
+    //   hasDisplayedContent: !!displayedContent,
+    //   ingredients
+    // });
     
     if (ingredients.length >= 3 && !isGenerating && !displayedContent) {
-      console.log('Auto-generating recipe...');
+      // console.log('Auto-generating recipe...');
       generateRecipe();
     }
   }, [ingredients, isGenerating, displayedContent, generateRecipe]);

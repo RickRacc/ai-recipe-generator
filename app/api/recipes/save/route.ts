@@ -8,7 +8,7 @@ import type { Database } from '@/types/supabase';
 try {
   validateEnvVars();
 } catch (error) {
-  console.error('Environment validation failed:', error);
+  // console.error('Environment validation failed:', error);
 }
 
 const supabase = createClient<Database>(
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Database error:', error);
+      // console.error('Database error:', error);
       return createErrorResponse(
         'Failed to save recipe. Please try again.',
         500,
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     return createSuccessResponse(recipe, 'Recipe saved successfully');
 
   } catch (error) {
-    console.error('Save recipe error:', error);
+    // console.error('Save recipe error:', error);
     return createErrorResponse(
       'Internal server error. Please try again later.',
       500

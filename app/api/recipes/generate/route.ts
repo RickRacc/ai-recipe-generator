@@ -12,7 +12,7 @@ export const runtime = 'edge';
 try {
   validateEnvVars();
 } catch (error) {
-  console.error('Environment validation failed:', error);
+  // console.error('Environment validation failed:', error);
 }
 
 const anthropic = new Anthropic({
@@ -21,20 +21,20 @@ const anthropic = new Anthropic({
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('POST /api/recipes/generate - Request received');
+    // console.log('POST /api/recipes/generate - Request received');
     
     // Get user info for rate limiting
     const { user } = await getUserFromRequest(request);
     const clientIP = getClientIP(request);
     const identifier = user?.id || clientIP;
-    console.log('Recipe generation request from:', identifier, user ? 'authenticated' : 'guest');
+    // console.log('Recipe generation request from:', identifier, user ? 'authenticated' : 'guest');
 
     // Check rate limits
     const rateLimitResult = await consumeRateLimit(identifier, !!user);
-    console.log('Rate limit result:', rateLimitResult);
+    // console.log('Rate limit result:', rateLimitResult);
     
     if (!rateLimitResult.allowed) {
-      console.log('Rate limit exceeded for recipe generation');
+      // console.log('Rate limit exceeded for recipe generation');
       return createErrorResponse(
         'Rate limit exceeded. Please try again later.',
         429,
@@ -49,16 +49,16 @@ export async function POST(request: NextRequest) {
 
     // Parse and validate request body
     const body = await request.json();
-    console.log('Recipe generation request body:', body);
+    // console.log('Recipe generation request body:', body);
     
     const validation = recipeGenerationSchema.safeParse({
       ...body,
       userId: user?.id,
     });
-    console.log('Validation result:', validation.success, validation.error?.issues);
+    // console.log('Validation result:', validation.success, validation.error?.issues);
 
     if (!validation.success) {
-      console.log('Recipe generation validation failed:', formatValidationError(validation.error));
+      // console.log('Recipe generation validation failed:', formatValidationError(validation.error));
       return createErrorResponse(
         'Invalid request data',
         400,
@@ -74,19 +74,19 @@ export async function POST(request: NextRequest) {
     }
 
     const { ingredients } = validation.data;
-    console.log('Valid ingredients:', ingredients);
+    // console.log('Valid ingredients:', ingredients);
 
     // Create the prompt for Claude
     const prompt = `Create a delicious recipe using these ingredients: ${ingredients.join(', ')}.
 
 Please format the recipe clearly with sections for ingredients (with measurements), instructions, prep time, cook time, and servings. Make the recipe practical and achievable for home cooks.`;
-    console.log('Generated prompt:', prompt);
+    // console.log('Generated prompt:', prompt);
 
     // Create streaming response
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          console.log('Starting Anthropic stream with config:', ANTHROPIC_CONFIG);
+          // console.log('Starting Anthropic stream with config:', ANTHROPIC_CONFIG);
           const stream = anthropic.messages.stream({
             model: ANTHROPIC_CONFIG.MODEL,
             max_tokens: ANTHROPIC_CONFIG.MAX_TOKENS,
@@ -99,7 +99,7 @@ Please format the recipe clearly with sections for ingredients (with measurement
               },
             ],
           });
-          console.log('Anthropic stream created successfully');
+          // console.log('Anthropic stream created successfully');
 
           let fullResponse = '';
 
@@ -131,7 +131,7 @@ Please format the recipe clearly with sections for ingredients (with measurement
           });
 
           stream.on('error', (error) => {
-            console.error('Streaming error:', error);
+            // console.error('Streaming error:', error);
             
             const errorData = JSON.stringify({
               type: 'error',
@@ -144,7 +144,7 @@ Please format the recipe clearly with sections for ingredients (with measurement
           });
 
         } catch (error) {
-          console.error('Recipe generation error:', error);
+          // console.error('Recipe generation error:', error);
           
           const errorData = JSON.stringify({
             type: 'error',
@@ -175,7 +175,7 @@ Please format the recipe clearly with sections for ingredients (with measurement
     });
 
   } catch (error) {
-    console.error('API error:', error);
+    // console.error('API error:', error);
     
     return createErrorResponse(
       'Internal server error. Please try again later.',

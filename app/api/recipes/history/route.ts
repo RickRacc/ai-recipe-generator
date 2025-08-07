@@ -8,7 +8,7 @@ import type { Database } from '@/types/supabase';
 try {
   validateEnvVars();
 } catch (error) {
-  console.error('Environment validation failed:', error);
+  // console.error('Environment validation failed:', error);
 }
 
 const supabase = createClient<Database>(
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
     const { data: recipes, error, count } = await query;
 
     if (error) {
-      console.error('Database error:', error);
+      // console.error('Database error:', error);
       return createErrorResponse(
         'Failed to fetch recipes',
         500,
@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Recipe history error:', error);
+    // console.error('Recipe history error:', error);
     return createErrorResponse(
       'Internal server error. Please try again later.',
       500

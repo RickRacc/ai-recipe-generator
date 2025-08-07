@@ -73,7 +73,7 @@ export function RecipeHistory({ onRecipeSelect, className = '' }: RecipeHistoryP
         throw new Error(data.error || 'Failed to fetch recipes');
       }
     } catch (error: unknown) {
-      console.error('Failed to fetch recipes:', error);
+      // console.error('Failed to fetch recipes:', error);
       setError(error instanceof Error ? error.message : 'Failed to fetch recipes');
       setRecipes([]);
       setPagination(null);
@@ -113,7 +113,7 @@ export function RecipeHistory({ onRecipeSelect, className = '' }: RecipeHistoryP
         }
       }
     } catch (error: unknown) {
-      console.error('Failed to delete recipe:', error);
+      // console.error('Failed to delete recipe:', error);
       setError(error instanceof Error ? error.message : 'Failed to delete recipe');
     } finally {
       setDeletingIds(prev => {
