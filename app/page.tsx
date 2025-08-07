@@ -10,17 +10,17 @@ export default function Home() {
     <main className="min-h-screen flex flex-col">
       {/* Navigation */}
       <nav className="w-full border-b border-border bg-card/90 backdrop-blur-md sticky top-0 z-40 shadow-sm">
-        <div className="container mx-auto flex h-20 items-center justify-between px-6">
-          <div className="flex items-center gap-8">
-            <Link href="/" className="text-2xl font-bold hover:text-primary transition-all duration-300 font-recipe-title">
-              <span className="text-primary">🍳</span> AI Recipe Generator
+        <div className="container mx-auto flex h-20 items-center justify-between px-4 sm:px-6">
+          <div className="flex items-center gap-2 sm:gap-8 min-w-0 flex-1">
+            <Link href="/" className="text-xl sm:text-2xl font-bold hover:text-primary transition-all duration-300 font-recipe-title truncate">
+              <span className="text-primary">🍳</span> <span className="hidden xs:inline">AI Recipe Generator</span><span className="xs:hidden">Recipes</span>
             </Link>
-            <Link href="/dashboard" className="text-sm text-muted-foreground hover:text-primary transition-all duration-200 font-medium px-4 py-2 rounded-lg hover:bg-primary/10">
+            <Link href="/dashboard" className="hidden sm:block text-sm text-muted-foreground hover:text-primary transition-all duration-200 font-medium px-4 py-2 rounded-lg hover:bg-primary/10">
               My Recipes
             </Link>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             <ThemeSwitcher />
             {!hasEnvVars ? <EnvVarWarning /> : <AuthButton />}
           </div>
@@ -28,7 +28,7 @@ export default function Home() {
       </nav>
 
       {/* Main Content */}
-      <div className="flex-1 container mx-auto py-12 px-6">
+      <div className="flex-1 container mx-auto py-8 sm:py-12 px-4 sm:px-6">
         {hasEnvVars ? (
           <RecipeGenerator />
         ) : (
@@ -49,8 +49,8 @@ export default function Home() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-border bg-card/30 backdrop-blur-sm py-12">
-        <div className="container mx-auto px-6">
+      <footer className="border-t border-border bg-card/30 backdrop-blur-sm py-8 sm:py-12">
+        <div className="container mx-auto px-4 sm:px-6">
           <div className="text-center space-y-4">
             <p className="text-muted-foreground font-recipe-content">
               Powered by{" "}

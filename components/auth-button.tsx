@@ -8,12 +8,12 @@ export async function AuthButton() {
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
     // During build time or when env vars are missing, show sign-in/sign-up buttons
     return (
-      <div className="flex gap-2">
-        <Button asChild size="sm" variant={"outline"}>
-          <Link href="/auth/login">Sign in</Link>
+      <div className="flex gap-1 sm:gap-2">
+        <Button asChild size="sm" variant={"outline"} className="text-xs sm:text-sm px-2 sm:px-4">
+          <Link href="/auth/login"><span className="hidden xs:inline">Sign in</span><span className="xs:hidden">In</span></Link>
         </Button>
-        <Button asChild size="sm" variant={"default"}>
-          <Link href="/auth/sign-up">Sign up</Link>
+        <Button asChild size="sm" variant={"default"} className="text-xs sm:text-sm px-2 sm:px-4">
+          <Link href="/auth/sign-up"><span className="hidden xs:inline">Sign up</span><span className="xs:hidden">Up</span></Link>
         </Button>
       </div>
     );
@@ -33,24 +33,24 @@ export async function AuthButton() {
         <LogoutButton />
       </div>
     ) : (
-      <div className="flex gap-2">
-        <Button asChild size="sm" variant={"outline"}>
-          <Link href="/auth/login">Sign in</Link>
+      <div className="flex gap-1 sm:gap-2">
+        <Button asChild size="sm" variant={"outline"} className="text-xs sm:text-sm px-2 sm:px-4">
+          <Link href="/auth/login"><span className="hidden xs:inline">Sign in</span><span className="xs:hidden">In</span></Link>
         </Button>
-        <Button asChild size="sm" variant={"default"}>
-          <Link href="/auth/sign-up">Sign up</Link>
+        <Button asChild size="sm" variant={"default"} className="text-xs sm:text-sm px-2 sm:px-4">
+          <Link href="/auth/sign-up"><span className="hidden xs:inline">Sign up</span><span className="xs:hidden">Up</span></Link>
         </Button>
       </div>
     );
   } catch {
     // If there's an error creating the client, show sign-in/sign-up buttons
     return (
-      <div className="flex gap-2">
-        <Button asChild size="sm" variant={"outline"}>
-          <Link href="/auth/login">Sign in</Link>
+      <div className="flex gap-1 sm:gap-2">
+        <Button asChild size="sm" variant={"outline"} className="text-xs sm:text-sm px-2 sm:px-4">
+          <Link href="/auth/login"><span className="hidden xs:inline">Sign in</span><span className="xs:hidden">In</span></Link>
         </Button>
-        <Button asChild size="sm" variant={"default"}>
-          <Link href="/auth/sign-up">Sign up</Link>
+        <Button asChild size="sm" variant={"default"} className="text-xs sm:text-sm px-2 sm:px-4">
+          <Link href="/auth/sign-up"><span className="hidden xs:inline">Sign up</span><span className="xs:hidden">Up</span></Link>
         </Button>
       </div>
     );
