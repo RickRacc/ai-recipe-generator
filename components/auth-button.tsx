@@ -28,10 +28,7 @@ export async function AuthButton() {
     const user = data?.claims;
 
     return user ? (
-      <div className="flex items-center gap-4">
-        Hey, {user.email}!
-        <LogoutButton />
-      </div>
+      <LogoutButton />
     ) : (
       <div className="flex gap-1 sm:gap-2">
         <Button asChild size="sm" variant={"outline"} className="text-xs sm:text-sm px-2 sm:px-4">
