@@ -6,7 +6,7 @@ import { X, Plus, Check, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { VALIDATION, ANIMATIONS } from '@/lib/constants';
+import { VALIDATION, ANIMATIONS, COMMON_INGREDIENTS, BLACKLISTED_ITEMS } from '@/lib/constants';
 import { debounce } from '@/lib/utils';
 
 interface IngredientSuggestion {
@@ -46,6 +46,61 @@ export function IngredientInput({
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
+  // Fallback validation functions
+  const validateIngredientOffline = (ingredient: string): IngredientValidation => {
+    const cleaned = ingredient.toLowerCase().trim();
+    
+    // Check blacklist
+    const isBlacklisted = BLACKLISTED_ITEMS.some(item => cleaned.includes(item));
+    if (isBlacklisted) {
+      return {
+        isValid: false,
+        confidence: 0,
+        alternatives: [],
+        errors: ['This item is not a valid ingredient']
+      };
+    }
+    
+    // Check if it's a common ingredient
+    const isCommon = COMMON_INGREDIENTS.includes(cleaned as typeof COMMON_INGREDIENTS[number]);
+    if (isCommon) {
+      return {
+        isValid: true,
+        confidence: 1,
+        alternatives: [],
+        errors: []
+      };
+    }
+    
+    // Find close matches
+    const suggestions = COMMON_INGREDIENTS.filter(ing => 
+      ing.includes(cleaned) || cleaned.includes(ing)
+    ).slice(0, 3);
+    
+    return {
+      isValid: cleaned.length > 0 && cleaned.length <= 50,
+      confidence: suggestions.length > 0 ? 0.5 : 0.3,
+      alternatives: suggestions,
+      suggestion: suggestions[0],
+      errors: cleaned.length === 0 ? ['Ingredient cannot be empty'] : 
+              cleaned.length > 50 ? ['Ingredient name too long'] : []
+    };
+  };
+
+  const getSuggestionsOffline = (query: string): IngredientSuggestion[] => {
+    return COMMON_INGREDIENTS
+      .filter(ingredient => 
+        ingredient.toLowerCase().includes(query.toLowerCase()) ||
+        query.toLowerCase().includes(ingredient.toLowerCase())
+      )
+      .slice(0, 10)
+      .map(ingredient => ({
+        value: ingredient,
+        label: ingredient.charAt(0).toUpperCase() + ingredient.slice(1),
+        category: 'ingredient'
+      }));
+  };
+
   // Debounced functions for API calls
   const debouncedFetchSuggestions = useCallback(
     (query: string) => {
@@ -59,15 +114,33 @@ export function IngredientInput({
         setIsLoadingSuggestions(true);
         try {
           const response = await fetch(`/api/ingredients/validate?q=${encodeURIComponent(q)}`);
+          console.log('Suggestions API response status:', response.status);
+          
+          if (!response.ok) {
+            console.error('Suggestions API error:', response.status, await response.text());
+            return;
+          }
+          
           const data = await response.json();
+          console.log('Suggestions API data:', data);
           
           if (data.success) {
             setSuggestions(data.data);
             setShowSuggestions(true);
             setSelectedSuggestionIndex(-1);
+          } else {
+            console.error('Suggestions API returned error:', data);
+            // Fallback to offline suggestions
+            const fallbackSuggestions = getSuggestionsOffline(q);
+            setSuggestions(fallbackSuggestions);
+            setShowSuggestions(fallbackSuggestions.length > 0);
           }
         } catch (error) {
           console.error('Failed to fetch suggestions:', error);
+          // Fallback to offline suggestions
+          const fallbackSuggestions = getSuggestionsOffline(q);
+          setSuggestions(fallbackSuggestions);
+          setShowSuggestions(fallbackSuggestions.length > 0);
         } finally {
           setIsLoadingSuggestions(false);
         }
@@ -93,13 +166,27 @@ export function IngredientInput({
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ingredient: ing }),
           });
+          console.log('Validation API response status:', response.status);
+          
+          if (!response.ok) {
+            console.error('Validation API error:', response.status, await response.text());
+            return;
+          }
+          
           const data = await response.json();
+          console.log('Validation API data:', data);
           
           if (data.success) {
             setValidationResult(data.data);
+          } else {
+            console.error('Validation API returned error:', data);
+            // Fallback to offline validation
+            setValidationResult(validateIngredientOffline(ing));
           }
         } catch (error) {
           console.error('Failed to validate ingredient:', error);
+          // Fallback to offline validation
+          setValidationResult(validateIngredientOffline(ing));
         } finally {
           setIsValidating(false);
         }
@@ -124,6 +211,13 @@ export function IngredientInput({
     if (!trimmed) return;
     if (ingredients.includes(trimmed)) return;
     if (ingredients.length >= maxIngredients) return;
+
+    // Check validation before adding
+    const validation = validationResult || validateIngredientOffline(trimmed);
+    if (!validation.isValid) {
+      console.log('Cannot add invalid ingredient:', trimmed, validation.errors);
+      return;
+    }
 
     onIngredientsChange([...ingredients, trimmed]);
     setInputValue('');

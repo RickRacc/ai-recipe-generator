@@ -19,12 +19,12 @@ Keep recipes realistic and achievable for home cooks. Use proper cooking techniq
 export const RATE_LIMITS = {
   GUEST_REQUESTS_PER_HOUR: parseInt(process.env.MAX_REQUESTS_PER_HOUR_GUEST || '5'),
   USER_REQUESTS_PER_HOUR: parseInt(process.env.MAX_REQUESTS_PER_HOUR_USER || '20'),
-  VALIDATION_REQUESTS_PER_MINUTE: 10,
+  VALIDATION_REQUESTS_PER_MINUTE: 30,
 } as const;
 
 // Animation Settings
 export const ANIMATIONS = {
-  TYPING_SPEED: 50, // milliseconds per character
+  TYPING_SPEED: 4, // milliseconds per character
   CURSOR_BLINK_RATE: 530, // milliseconds
   FADE_DURATION: 0.3,
   SPRING_CONFIG: { type: "spring", stiffness: 100, damping: 15 },

@@ -11,14 +11,19 @@ const validateRequestSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('POST /api/ingredients/validate - Request received');
+    
     // Rate limiting
     const { user } = await getUserFromRequest(request);
     const clientIP = getClientIP(request);
     const identifier = user?.id || clientIP;
+    console.log('Validation request from:', identifier);
 
     const rateLimitResult = await consumeValidationRateLimit(identifier);
+    console.log('Rate limit result:', rateLimitResult);
     
     if (!rateLimitResult.allowed) {
+      console.log('Rate limit exceeded for validation');
       return createErrorResponse(
         'Too many validation requests. Please slow down.',
         429,
@@ -31,9 +36,12 @@ export async function POST(request: NextRequest) {
 
     // Parse and validate request
     const body = await request.json();
+    console.log('Validation request body:', body);
+    
     const validation = validateRequestSchema.safeParse(body);
 
     if (!validation.success) {
+      console.log('Request validation failed:', validation.error);
       return createErrorResponse(
         'Invalid request data',
         400,
@@ -42,10 +50,14 @@ export async function POST(request: NextRequest) {
     }
 
     const { ingredient } = validation.data;
+    console.log('Validating ingredient:', ingredient);
 
     // Validate ingredient using our validation logic
     const ingredientValidation = ingredientSchema.safeParse(ingredient);
     const smartValidation = findClosestIngredient(ingredient);
+    
+    console.log('Ingredient schema validation:', ingredientValidation.success, ingredientValidation.error?.issues);
+    console.log('Smart validation result:', smartValidation);
 
     const result = {
       ingredient,
@@ -56,7 +68,8 @@ export async function POST(request: NextRequest) {
       category: smartValidation.category,
       alternatives: getAlternatives(ingredient),
     };
-
+    
+    console.log('Final validation result:', result);
     return createSuccessResponse(result);
 
   } catch (error) {
@@ -71,10 +84,14 @@ export async function POST(request: NextRequest) {
 // GET autocomplete suggestions
 export async function GET(request: NextRequest) {
   try {
+    console.log('GET /api/ingredients/validate - Autocomplete request received');
+    
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q')?.toLowerCase() || '';
+    console.log('Autocomplete query:', query);
     
     if (query.length < 2) {
+      console.log('Query too short, returning empty results');
       return createSuccessResponse([]);
     }
 
@@ -82,10 +99,13 @@ export async function GET(request: NextRequest) {
     const { user } = await getUserFromRequest(request);
     const clientIP = getClientIP(request);
     const identifier = user?.id || clientIP;
+    console.log('Autocomplete request from:', identifier);
 
     const rateLimitResult = await consumeValidationRateLimit(identifier);
+    console.log('Autocomplete rate limit result:', rateLimitResult);
     
     if (!rateLimitResult.allowed) {
+      console.log('Rate limit exceeded for autocomplete');
       return createErrorResponse(
         'Too many requests. Please slow down.',
         429,
@@ -109,6 +129,7 @@ export async function GET(request: NextRequest) {
         category: getIngredientCategory(ingredient),
       }));
 
+    console.log('Found suggestions:', suggestions.length, suggestions);
     return createSuccessResponse(suggestions);
 
   } catch (error) {
