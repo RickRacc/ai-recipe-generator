@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Copy, Save, Loader2, RefreshCw, AlertCircle, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ANIMATIONS } from '@/lib/constants';
 import { createClient } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
@@ -31,6 +32,7 @@ export function RecipeDisplay({
   const [isCopied, setIsCopied] = useState(false);
   const [showCursor, setShowCursor] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [isGeneratingRecipe, setIsGeneratingRecipe] = useState(false);
 
   const hasStartedTypingRef = useRef(false);
   const hasGeneratedRef = useRef(false);
@@ -43,6 +45,111 @@ export function RecipeDisplay({
 
   const [user, setUser] = useState<User | null>(null);
   const supabase = createClient();
+
+  // Format recipe content by removing numbering and creating JSX elements
+  const formatRecipeContent = useCallback((content: string) => {
+    if (!content) return [];
+
+    let formatted = content;
+
+    // Remove the title from the beginning if it exists (since we show it separately)
+    const allLines = formatted.split('\n');
+    let startIndex = 0;
+    
+    // Check if first line is a title (either numbered or markdown)
+    if (allLines[0]) {
+      const firstLine = allLines[0].trim();
+      const isNumberedTitle = /^1\.\s*/.test(firstLine);
+      const isMarkdownTitle = /^#\s*/.test(firstLine);
+      
+      if (isNumberedTitle || isMarkdownTitle) {
+        startIndex = 1; // Skip the first line
+        // Also skip any empty lines after the title
+        while (startIndex < allLines.length && !allLines[startIndex].trim()) {
+          startIndex++;
+        }
+      }
+    }
+    
+    // Rejoin the lines without the title
+    formatted = allLines.slice(startIndex).join('\n');
+
+    // Clean up any extra whitespace at the beginning
+    formatted = formatted.replace(/^\s+/, '');
+
+    // Split content into lines and process each one
+    const lines = formatted.split('\n');
+    const elements: React.ReactElement[] = [];
+    let currentIndex = 0;
+
+    // Define sections that need different spacing
+    const smallSpacingSections = ['prep time', 'servings', 'ingredients'];
+    const largeSpacingSections = ['instructions', 'chef\'s tips', 'notes'];
+    
+    // Define what constitutes a main section title (not instruction steps)
+    const validSectionTitles = [
+      'prep time', 'cook time', 'total time', 'servings', 'serves', 'ingredients', 
+      'instructions', 'directions', 'chef\'s tips', 'tips', 'notes', 'nutrition'
+    ];
+
+    // Helper function to check if a title matches a valid section
+    const isValidSectionTitle = (title: string) => {
+      const titleLower = title.toLowerCase().trim();
+      return validSectionTitles.some(validTitle => 
+        titleLower === validTitle || 
+        titleLower.includes(validTitle) || 
+        validTitle.includes(titleLower)
+      );
+    };
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      
+      // Check if line starts with a number (potential section title)
+      const numberMatch = line.match(/^(\d+)\.\s*(.+)/);
+      if (numberMatch) {
+        const titleText = numberMatch[2].replace(/:$/, ''); // Remove trailing colon if present
+        
+        // Only treat as section title if it matches our known sections
+        if (isValidSectionTitle(titleText)) {
+          const titleLower = titleText.toLowerCase().trim();
+          // This is a main section title - make it semibold
+          // Determine spacing based on section type
+          let topSpacing = 'mt-4'; // default spacing
+          if (smallSpacingSections.some(section => titleLower.includes(section) || section.includes(titleLower))) {
+            topSpacing = 'mt-2'; // reduced spacing for basic info sections
+          } else if (largeSpacingSections.some(section => titleLower.includes(section) || section.includes(titleLower))) {
+            topSpacing = 'mt-6'; // increased spacing for main content sections
+          }
+          
+          elements.push(
+            <div key={currentIndex++} className={`text-base ${topSpacing} mb-2`}>
+              <span className="font-semibold">{titleText}</span>
+            </div>
+          );
+        } else {
+          // This is likely an instruction step - treat as regular content
+          elements.push(
+            <div key={currentIndex++} className="mb-1 font-normal text-sm">
+              {line}
+            </div>
+          );
+        }
+      } else if (line.trim()) {
+        // Regular content line - ensure it's not bold
+        elements.push(
+          <div key={currentIndex++} className="mb-1 font-normal text-sm">
+            {line}
+          </div>
+        );
+      } else {
+        // Empty line - add some spacing
+        elements.push(<div key={currentIndex++} className="mb-2" />);
+      }
+    }
+
+    return elements;
+  }, []);
 
   // Get user on component mount
   useEffect(() => {
@@ -126,6 +233,7 @@ export function RecipeDisplay({
 
     console.log('Starting recipe generation...');
     isGeneratingRef.current = true;
+    setIsGeneratingRecipe(true);
     setError(null);
     setDisplayedContent('');
     setFullContent('');
@@ -205,7 +313,7 @@ export function RecipeDisplay({
                 hasStartedTypingRef.current = true;
                 
                 // Extract title from content (handle multiple formats)
-                if (!recipeTitle && data.content) {
+                if (data.content) {
                   // Try markdown header first: # Title
                   let titleMatch = data.content.match(/# (.+)/);
                   if (titleMatch) {
@@ -260,10 +368,11 @@ export function RecipeDisplay({
       }
     } finally {
       isGeneratingRef.current = false;
+      setIsGeneratingRecipe(false);
       setShowCursor(false);
       setIsTyping(false);
     }
-  }, [ingredients, startTypewriter, recipeTitle]);
+  }, [ingredients, startTypewriter]);
 
   // Reset state when ingredients change (no auto-generation)
   useEffect(() => {
@@ -276,6 +385,7 @@ export function RecipeDisplay({
     // Reset all state when ingredients change
     hasGeneratedRef.current = false;
     isGeneratingRef.current = false;
+    setIsGeneratingRecipe(false);
     setDisplayedContent('');
     setFullContent('');
     setRecipeTitle('');
@@ -359,6 +469,7 @@ export function RecipeDisplay({
     }
     isGeneratingRef.current = false;
     hasGeneratedRef.current = false;
+    setIsGeneratingRecipe(false);
     setShowCursor(false);
     setIsTyping(false);
   };
@@ -380,28 +491,19 @@ export function RecipeDisplay({
     <Card className="relative overflow-hidden">
       <div className="p-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            {recipeTitle && (
-              <motion.h2
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-lg font-semibold"
-              >
-                {recipeTitle}
-              </motion.h2>
-            )}
-            
-            {isGenerating && !error && (
-              <Badge variant="secondary" className="flex items-center gap-1">
-                <Loader2 className="h-3 w-3 animate-spin" />
-                Generating...
-              </Badge>
-            )}
-          </div>
-
+        <div className="mb-4">
           {/* Action Buttons */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              {isGenerating && !error && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Generating...
+                </Badge>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-2">
             {hasContent && !isGenerating && (
               <>
                 <Button
@@ -444,10 +546,19 @@ export function RecipeDisplay({
                   size="sm"
                   variant="outline"
                   onClick={generateRecipe}
-                  disabled={isGenerating}
+                  disabled={isGenerating || isGeneratingRecipe}
                 >
-                  <RefreshCw className="h-3 w-3 mr-1" />
-                  Regenerate
+                  {isGeneratingRecipe ? (
+                    <>
+                      <LoadingSpinner size="sm" className="mr-1" />
+                      Regenerating...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-3 w-3 mr-1" />
+                      Regenerate
+                    </>
+                  )}
                 </Button>
               </>
             )}
@@ -461,7 +572,19 @@ export function RecipeDisplay({
                 Cancel
               </Button>
             )}
+            </div>
           </div>
+          
+          {/* Recipe Title */}
+          {recipeTitle && (
+            <motion.h2
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-lg font-semibold mb-2"
+            >
+              {recipeTitle}
+            </motion.h2>
+          )}
         </div>
 
         {/* Ingredients Display */}
@@ -509,8 +632,19 @@ export function RecipeDisplay({
 
           {!hasContent && !isGenerating && ingredients.length >= 3 && !error && (
             <div className="flex items-center justify-center h-32">
-              <Button onClick={generateRecipe} size="lg">
-                Generate Recipe
+              <Button 
+                onClick={generateRecipe} 
+                size="lg"
+                disabled={isGeneratingRecipe}
+              >
+                {isGeneratingRecipe ? (
+                  <>
+                    <LoadingSpinner size="sm" className="mr-2" />
+                    Generating Recipe...
+                  </>
+                ) : (
+                  'Generate Recipe'
+                )}
               </Button>
             </div>
           )}
@@ -519,10 +653,10 @@ export function RecipeDisplay({
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="prose prose-sm max-w-none"
+              className="text-sm leading-relaxed"
             >
-              <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
-                {displayedContent}
+              <div className="font-sans font-normal">
+                {formatRecipeContent(displayedContent)}
                 <AnimatePresence>
                   {showCursor && (
                     <motion.span
@@ -533,7 +667,7 @@ export function RecipeDisplay({
                     />
                   )}
                 </AnimatePresence>
-              </pre>
+              </div>
             </motion.div>
           )}
 

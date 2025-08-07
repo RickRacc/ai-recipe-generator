@@ -24,7 +24,7 @@ export const RATE_LIMITS = {
 
 // Animation Settings
 export const ANIMATIONS = {
-  TYPING_SPEED: 4, // milliseconds per character
+  TYPING_SPEED: 2, // milliseconds per character
   CURSOR_BLINK_RATE: 530, // milliseconds
   FADE_DURATION: 0.3,
   SPRING_CONFIG: { type: "spring", stiffness: 100, damping: 15 },
