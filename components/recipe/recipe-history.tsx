@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Filter, Trash2, Eye, Calendar, Clock, ChefHat, Loader2 } from 'lucide-react';
+import { Search, Filter, Trash2, Eye, Calendar, Clock, ChefHat, Loader2, X } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { formatTimeAgo, truncate, capitalizeWords } from '@/lib/utils';
 import { ANIMATIONS } from '@/lib/constants';
+import React from 'react';
 
 interface Recipe {
   id: string;
@@ -44,7 +45,92 @@ export function RecipeHistory({ onRecipeSelect, className = '' }: RecipeHistoryP
   const [error, setError] = useState<string | null>(null);
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const router = useRouter();
+
+  // Format recipe content for modal display
+  const formatRecipeForModal = (content: string) => {
+    if (!content) return [];
+
+    // Remove the title from the beginning if it exists (since we show it in modal header)
+    const allLines = content.split('\n');
+    let startIndex = 0;
+    
+    // Check if first line is a title (either numbered or markdown)
+    if (allLines[0]) {
+      const firstLine = allLines[0].trim();
+      const isNumberedTitle = /^1\.\s*/.test(firstLine);
+      const isMarkdownTitle = /^#\s*/.test(firstLine);
+      
+      if (isNumberedTitle || isMarkdownTitle) {
+        startIndex = 1; // Skip the first line
+        // Also skip any empty lines after the title
+        while (startIndex < allLines.length && !allLines[startIndex].trim()) {
+          startIndex++;
+        }
+      }
+    }
+    
+    // Use the content without the title
+    const contentWithoutTitle = allLines.slice(startIndex).join('\n');
+    const lines = contentWithoutTitle.split('\n');
+    const elements: React.ReactElement[] = [];
+    let currentIndex = 0;
+
+    // Define valid section titles
+    const validSectionTitles = [
+      'prep time', 'cook time', 'total time', 'servings', 'serves', 'ingredients', 
+      'instructions', 'directions', 'chef\'s tips', 'tips', 'notes', 'nutrition'
+    ];
+
+    // Helper function to check if a title matches a valid section
+    const isValidSectionTitle = (title: string) => {
+      const titleLower = title.toLowerCase().trim();
+      return validSectionTitles.some(validTitle => 
+        titleLower === validTitle || 
+        titleLower.includes(validTitle) || 
+        validTitle.includes(titleLower)
+      );
+    };
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      
+      // Check if line starts with a number (potential section title)
+      const numberMatch = line.match(/^(\d+)\.\s*(.+)/);
+      if (numberMatch) {
+        const titleText = numberMatch[2].replace(/:$/, '');
+        
+        // Only treat as section title if it matches our known sections
+        if (isValidSectionTitle(titleText)) {
+          elements.push(
+            <div key={currentIndex++} className="font-semibold text-base mt-4 mb-2">
+              {titleText}
+            </div>
+          );
+        } else {
+          // This is likely an instruction step - treat as regular content
+          elements.push(
+            <div key={currentIndex++} className="mb-1 text-sm">
+              {line}
+            </div>
+          );
+        }
+      } else if (line.trim()) {
+        // Regular content line
+        elements.push(
+          <div key={currentIndex++} className="mb-1 text-sm">
+            {line}
+          </div>
+        );
+      } else {
+        // Empty line - add some spacing
+        elements.push(<div key={currentIndex++} className="mb-2" />);
+      }
+    }
+
+    return elements;
+  };
 
   // Fetch recipes from API
   const fetchRecipes = useCallback(async (page = 1, search = searchQuery) => {
@@ -293,7 +379,10 @@ export function RecipeHistory({ onRecipeSelect, className = '' }: RecipeHistoryP
             >
               <RecipeCard
                 recipe={recipe}
-                onSelect={() => onRecipeSelect?.(recipe)}
+                onSelect={() => {
+                  setSelectedRecipe(recipe);
+                  onRecipeSelect?.(recipe);
+                }}
                 onDelete={() => deleteRecipe(recipe.id)}
                 isDeleting={deletingIds.has(recipe.id)}
               />
@@ -328,6 +417,73 @@ export function RecipeHistory({ onRecipeSelect, className = '' }: RecipeHistoryP
           </Button>
         </div>
       )}
+
+      {/* Recipe View Modal */}
+      <AnimatePresence>
+        {selectedRecipe && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setSelectedRecipe(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", duration: 0.5 }}
+              className="bg-background rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-6 border-b">
+                <h2 className="text-xl font-semibold">
+                  {capitalizeWords(selectedRecipe.title)}
+                </h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedRecipe(null)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Modal Content */}
+              <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+                {/* Ingredients */}
+                <div className="mb-6">
+                  <h3 className="font-semibold mb-3">Ingredients</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedRecipe.ingredients.map((ingredient) => (
+                      <Badge key={ingredient} variant="secondary">
+                        {ingredient}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Recipe Content */}
+                <div className="space-y-4">
+                  <h3 className="font-semibold">Recipe</h3>
+                  <div className="bg-muted p-4 rounded-lg">
+                    {formatRecipeForModal(selectedRecipe.recipe_content)}
+                  </div>
+                </div>
+
+                {/* Recipe Info */}
+                <div className="mt-6 pt-4 border-t">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Clock className="h-4 w-4" />
+                    <span>Created {formatTimeAgo(selectedRecipe.created_at)}</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
