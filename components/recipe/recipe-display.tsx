@@ -134,6 +134,10 @@ export function RecipeDisplay({
     setShowCursor(true);
 
     try {
+      // Create fresh abort controller for this request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
       abortControllerRef.current = new AbortController();
       
       //console.log('Making request to /api/recipes/generate with:', { ingredients });
@@ -190,29 +194,48 @@ export function RecipeDisplay({
           if (line.startsWith('data: ')) {
             try {
               const dataStr = line.slice(6);
-              // console.log('Parsing SSE data:', dataStr);
+              console.log('📡 Parsing SSE data:', dataStr);
               const data = JSON.parse(dataStr);
-              // console.log('Parsed SSE data:', data);
+              console.log('📦 Parsed SSE data:', { type: data.type, hasContent: !!data.content });
               
               if (data.type === 'complete' && !hasStartedTypingRef.current) {
+                console.log('🎉 Received complete event:', { contentLength: data.content?.length, hasContent: !!data.content });
+                
                 // Start typewriter effect with the complete content
                 hasStartedTypingRef.current = true;
                 
-                // Extract title from content
-                if (!recipeTitle && data.content.includes('#')) {
-                  const titleMatch = data.content.match(/# (.+)/);
+                // Extract title from content (handle multiple formats)
+                if (!recipeTitle && data.content) {
+                  // Try markdown header first: # Title
+                  let titleMatch = data.content.match(/# (.+)/);
                   if (titleMatch) {
+                    console.log('📝 Setting recipe title (markdown):', titleMatch[1].trim());
                     setRecipeTitle(titleMatch[1].trim());
+                  } else {
+                    // Try numbered format: 1. Title
+                    titleMatch = data.content.match(/^1\.\s*(.+?)(?:\n|$)/m);
+                    if (titleMatch) {
+                      console.log('📝 Setting recipe title (numbered):', titleMatch[1].trim());
+                      setRecipeTitle(titleMatch[1].trim());
+                    } else {
+                      // Fallback: use first line
+                      const firstLine = data.content.split('\n')[0].trim();
+                      if (firstLine) {
+                        console.log('📝 Setting recipe title (first line):', firstLine);
+                        setRecipeTitle(firstLine);
+                      }
+                    }
                   }
                 }
                 
                 // Set full content for saving/copying purposes
+                console.log('💾 Setting fullContent with length:', data.content?.length);
                 setFullContent(data.content);
                 
                 // Start typewriter effect
                 startTypewriter(data.content);
                 
-                // console.log('Recipe generation complete, content length:', data.content.length);
+                console.log('✅ Recipe generation complete, content length:', data.content.length);
               } else if (data.type === 'error') {
                 console.log('Received error from stream:', data.message);
                 setError(data.message);
@@ -228,7 +251,8 @@ export function RecipeDisplay({
     } catch (error: unknown) {
       console.error('Recipe generation error:', error);
       if (error instanceof Error && error.name === 'AbortError') {
-        setError('Recipe generation was cancelled.');
+        // Don't show error for intentionally aborted requests
+        console.log('Request was cancelled (likely due to ingredient change)');
       } else if (error instanceof Error) {
         setError(`Network error: ${error.message}`);
       } else {
@@ -241,8 +265,14 @@ export function RecipeDisplay({
     }
   }, [ingredients, startTypewriter, recipeTitle]);
 
-  // Single auto-generation effect - only triggers when ingredients change
+  // Reset state when ingredients change (no auto-generation)
   useEffect(() => {
+    // Cancel any existing request first
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+
     // Reset all state when ingredients change
     hasGeneratedRef.current = false;
     isGeneratingRef.current = false;
@@ -250,32 +280,29 @@ export function RecipeDisplay({
     setFullContent('');
     setRecipeTitle('');
     setError(null);
-
-    // Auto-generate if we have enough ingredients
-    if (ingredients.length >= 3) {
-      // Use setTimeout to ensure state updates have completed
-      const timeoutId = setTimeout(() => {
-        if (!hasGeneratedRef.current && !isGeneratingRef.current) {
-          hasGeneratedRef.current = true;
-          generateRecipe();
-        }
-      }, 100);
-      
-      return () => clearTimeout(timeoutId);
-    }
-  }, [ingredients, generateRecipe]);
+  }, [ingredients]);
 
   // Save recipe to database
   const saveRecipe = async () => {
+    console.log('Save recipe called:', { user: !!user, fullContent: !!fullContent, recipeTitle });
+    
     if (!user) {
       setError('Please sign in to save recipes');
       return;
     }
 
-    if (!fullContent || !recipeTitle) return;
+    if (!fullContent || !recipeTitle) {
+      setError('Recipe content is missing. Please generate a recipe first.');
+      console.error('Missing recipe data:', { fullContent: !!fullContent, recipeTitle });
+      return;
+    }
 
     setIsSaving(true);
+    setError(null); // Clear any previous errors
+    
     try {
+      console.log('Making save request with:', { title: recipeTitle, ingredientsCount: ingredients.length });
+      
       const response = await fetch('/api/recipes/save', {
         method: 'POST',
         headers: {
@@ -289,15 +316,19 @@ export function RecipeDisplay({
       });
 
       const data = await response.json();
+      console.log('Save response:', { status: response.status, data });
       
       if (data.success) {
         setIsSaved(true);
         onSaveRecipe?.(data.data);
+        console.log('Recipe saved successfully:', data.data);
         setTimeout(() => setIsSaved(false), 3000);
       } else {
+        console.error('Save failed:', data);
         setError(data.error || 'Failed to save recipe');
       }
-    } catch {
+    } catch (error) {
+      console.error('Save recipe error:', error);
       setError('Failed to save recipe. Please try again.');
     } finally {
       setIsSaving(false);
@@ -405,7 +436,7 @@ export function RecipeDisplay({
                     ) : (
                       <Save className="h-3 w-3 mr-1" />
                     )}
-                    {isSaved ? 'Saved!' : 'Save'}
+                    {isSaved ? 'Saved to My Recipes!' : 'Save to My Recipes'}
                   </Button>
                 )}
 

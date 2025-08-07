@@ -53,11 +53,19 @@ export const recipeSaveSchema = z.object({
 
 // Recipe history query schema
 export const recipeHistorySchema = z.object({
-  page: z.coerce.number().min(1).default(1),
-  limit: z.coerce.number().min(1).max(50).default(12),
-  search: z.string().optional(),
-  sortBy: z.enum(['created_at', 'title']).default('created_at'),
-  sortOrder: z.enum(['asc', 'desc']).default('desc'),
+  page: z.preprocess((val) => {
+    if (val === null || val === undefined || val === '') return 1;
+    const num = Number(val);
+    return isNaN(num) ? 1 : num;
+  }, z.number().min(1).default(1)),
+  limit: z.preprocess((val) => {
+    if (val === null || val === undefined || val === '') return 12;
+    const num = Number(val);
+    return isNaN(num) ? 12 : num;
+  }, z.number().min(1).max(50).default(12)),
+  search: z.preprocess((val) => val === null || val === undefined || val === '' ? undefined : val, z.string().optional()),
+  sortBy: z.preprocess((val) => val === null || val === undefined || val === '' ? 'created_at' : val, z.enum(['created_at', 'title']).default('created_at')),
+  sortOrder: z.preprocess((val) => val === null || val === undefined || val === '' ? 'desc' : val, z.enum(['asc', 'desc']).default('desc')),
 });
 
 // Ingredient validation result type
