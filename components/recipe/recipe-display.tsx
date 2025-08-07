@@ -128,7 +128,7 @@ export function RecipeDisplay({
     try {
       abortControllerRef.current = new AbortController();
       
-      // console.log('Making request to /api/recipes/generate with:', { ingredients });
+      console.log('Making request to /api/recipes/generate with:', { ingredients });
       const response = await fetch('/api/recipes/generate', {
         method: 'POST',
         headers: {
@@ -137,7 +137,7 @@ export function RecipeDisplay({
         body: JSON.stringify({ ingredients }),
         signal: abortControllerRef.current.signal,
       });
-      // console.log('Response received:', response.status, response.ok);
+      console.log('Response received:', response.status, response.ok);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -146,6 +146,7 @@ export function RecipeDisplay({
           setError(`Rate limit exceeded. Please try again in ${errorData.details?.retryAfter || 60} seconds.`);
         } else {
           setError('Failed to generate recipe. Please try again.');
+          console.log("Error response received:", errorData, response)
         }
         return;
       }
