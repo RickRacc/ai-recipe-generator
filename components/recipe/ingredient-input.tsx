@@ -210,6 +210,10 @@ export function IngredientInput({
   // Handle input changes
   const handleInputChange = (value: string) => {
     setInputValue(value);
+    // Clear stale validation state when input changes
+    if (value !== inputValue) {
+      setValidationResult(null);
+    }
     debouncedFetchSuggestions(value);
     debouncedValidateIngredient(value);
   };
@@ -222,8 +226,8 @@ export function IngredientInput({
     if (ingredients.includes(trimmed)) return;
     if (ingredients.length >= maxIngredients) return;
 
-    // Check validation before adding
-    const validation = validationResult || validateIngredientOffline(trimmed);
+    // Always validate the current ingredient being added (ignore potentially stale validationResult)
+    const validation = validateIngredientOffline(trimmed);
     if (!validation.isValid) {
       // console.log('Cannot add invalid ingredient:', trimmed, validation.errors);
       return;

@@ -19,7 +19,7 @@ Keep recipes realistic and achievable for home cooks. Use proper cooking techniq
 export const RATE_LIMITS = {
   GUEST_REQUESTS_PER_HOUR: parseInt(process.env.MAX_REQUESTS_PER_HOUR_GUEST || '5'),
   USER_REQUESTS_PER_HOUR: parseInt(process.env.MAX_REQUESTS_PER_HOUR_USER || '20'),
-  VALIDATION_REQUESTS_PER_MINUTE: 500,
+  VALIDATION_REQUESTS_PER_MINUTE: 2000,
 } as const;
 
 // Animation Settings

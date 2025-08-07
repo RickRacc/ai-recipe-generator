@@ -5,6 +5,8 @@ import { motion } from 'framer-motion';
 import { IngredientInput } from './ingredient-input';
 import { RecipeDisplay } from './recipe-display';
 import { TiltCard } from '../ui/tilt-card';
+import { Button } from '../ui/button';
+import { RotateCcw } from 'lucide-react';
 import { VALIDATION } from '@/lib/constants';
 
 interface Recipe {
@@ -21,9 +23,15 @@ interface RecipeGeneratorProps {
 
 export function RecipeGenerator({ onRecipeSaved }: RecipeGeneratorProps) {
   const [ingredients, setIngredients] = useState<string[]>([]);
+  const [resetKey, setResetKey] = useState(0);
 
   const handleIngredientsChange = (newIngredients: string[]) => {
     setIngredients(newIngredients);
+  };
+
+  const handleReset = () => {
+    setIngredients([]);
+    setResetKey(prev => prev + 1); // Force re-render of child components
   };
 
   const handleSaveRecipe = (recipe: { title: string; ingredients: string[]; content: string }) => {
@@ -70,9 +78,22 @@ export function RecipeGenerator({ onRecipeSaved }: RecipeGeneratorProps) {
           className="space-y-8"
         >
           <div className="kitchen-card kitchen-card-bg p-8">
-            <div className="flex items-center gap-3 mb-6">
-              
-              <h2 className="text-2xl font-bold font-recipe-title text-foreground">Your Kitchen</h2>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                
+                <h2 className="text-2xl font-bold font-recipe-title text-foreground">Your Kitchen</h2>
+              </div>
+              {ingredients.length > 0 && (
+                <Button
+                  onClick={handleReset}
+                  variant="outline"
+                  size="sm"
+                  className="text-xs gap-1"
+                >
+                  <RotateCcw size={14} />
+                  Reset
+                </Button>
+              )}
             </div>
             <IngredientInput
               ingredients={ingredients}
@@ -130,6 +151,7 @@ export function RecipeGenerator({ onRecipeSaved }: RecipeGeneratorProps) {
           </div>
           <TiltCard className="recipe-card-3d recipe-display-card p-8">
             <RecipeDisplay
+              key={resetKey}
               ingredients={ingredients}
               isGenerating={false}
               onSaveRecipe={handleSaveRecipe}

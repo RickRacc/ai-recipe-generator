@@ -21,6 +21,7 @@ export function RecipeDisplay({
   isGenerating,
   onSaveRecipe 
 }: RecipeDisplayProps) {
+
   const [displayedContent, setDisplayedContent] = useState('');
   const [fullContent, setFullContent] = useState('');
   const [recipeTitle, setRecipeTitle] = useState('');
@@ -30,6 +31,9 @@ export function RecipeDisplay({
   const [isCopied, setIsCopied] = useState(false);
   const [showCursor, setShowCursor] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+
+  const hasStartedTypingRef = useRef(false);
+  const hasGeneratedRef = useRef(false);
   
   const eventSourceRef = useRef<EventSource | null>(null);
   const typewriterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -67,6 +71,7 @@ export function RecipeDisplay({
     setDisplayedContent('');
     setIsTyping(true);
     setShowCursor(true);
+    hasStartedTypingRef.current = false;
     
     const type = () => {
       if (index < content.length) {
@@ -188,11 +193,18 @@ export function RecipeDisplay({
                     setRecipeTitle(titleMatch[1].trim());
                   }
                 }
-              } else if (data.type === 'complete') {
+              } else if (data.type === 'complete' && !hasStartedTypingRef.current) {
+                // Start typewriter effect with the complete content
+                hasStartedTypingRef.current = true;
+                startTypewriter(data.content);
+
+                // Set full content after done with typwriter
+                setTimeout(() => {
+                  setFullContent(data.content);
+                }, data.content.length * ANIMATIONS.TYPING_SPEED + 500);
+
                 // console.log('Recipe generation complete, content length:', data.content.length);
                 setFullContent(data.content);
-                // Start typewriter effect with the complete content
-                startTypewriter(data.content);
               } else if (data.type === 'error') {
                 console.log('Received error from stream:', data.message);
                 setError(data.message);
@@ -226,11 +238,16 @@ export function RecipeDisplay({
     //   ingredients
     // });
     
-    if (ingredients.length >= 3 && !isGenerating && !displayedContent) {
+    if (ingredients.length >= 3 && !isGenerating && !displayedContent && !hasGeneratedRef.current) {
       // console.log('Auto-generating recipe...');
+      hasGeneratedRef.current = true;
       generateRecipe();
     }
   }, [ingredients, isGenerating, displayedContent, generateRecipe]);
+
+  useEffect(() => {
+    hasGeneratedRef.current = false;
+  }, [ingredients]);
 
   // Save recipe to database
   const saveRecipe = async () => {
@@ -274,7 +291,7 @@ export function RecipeDisplay({
   // Copy recipe to clipboard
   const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(fullContent || displayedContent);
+      await navigator.clipboard.writeText(displayedContent || fullContent);
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
     } catch {
