@@ -83,10 +83,11 @@ Please format the recipe clearly with sections for ingredients (with measurement
     // console.log('Generated prompt:', prompt);
 
     // Create streaming response
+    const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          // console.log('Starting Anthropic stream with config:', ANTHROPIC_CONFIG);
+          console.log('Starting Anthropic stream with config:', ANTHROPIC_CONFIG);
           const stream = anthropic.messages.stream({
             model: ANTHROPIC_CONFIG.MODEL,
             max_tokens: ANTHROPIC_CONFIG.MAX_TOKENS,
@@ -99,7 +100,7 @@ Please format the recipe clearly with sections for ingredients (with measurement
               },
             ],
           });
-          // console.log('Anthropic stream created successfully');
+          console.log('Anthropic stream created successfully');
 
           let fullResponse = '';
 
@@ -113,7 +114,7 @@ Please format the recipe clearly with sections for ingredients (with measurement
               timestamp: new Date().toISOString(),
             });
             
-            controller.enqueue(`data: ${data}\n\n`);
+            controller.enqueue(encoder.encode(`data: ${data}\n\n`));
           });
 
           stream.on('end', () => {
@@ -126,7 +127,7 @@ Please format the recipe clearly with sections for ingredients (with measurement
               timestamp: new Date().toISOString(),
             });
             
-            controller.enqueue(`data: ${finalData}\n\n`);
+            controller.enqueue(encoder.encode(`data: ${finalData}\n\n`));
             controller.close();
           });
 
@@ -139,7 +140,7 @@ Please format the recipe clearly with sections for ingredients (with measurement
               timestamp: new Date().toISOString(),
             });
             
-            controller.enqueue(`data: ${errorData}\n\n`);
+            controller.enqueue(encoder.encode(`data: ${errorData}\n\n`));
             controller.close();
           });
 
@@ -152,7 +153,7 @@ Please format the recipe clearly with sections for ingredients (with measurement
             timestamp: new Date().toISOString(),
           });
           
-          controller.enqueue(`data: ${errorData}\n\n`);
+          controller.enqueue(encoder.encode(`data: ${errorData}\n\n`));
           controller.close();
         }
       },

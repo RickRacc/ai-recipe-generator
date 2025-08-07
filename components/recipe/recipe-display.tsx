@@ -128,7 +128,7 @@ export function RecipeDisplay({
     try {
       abortControllerRef.current = new AbortController();
       
-      console.log('Making request to /api/recipes/generate with:', { ingredients });
+      //console.log('Making request to /api/recipes/generate with:', { ingredients });
       const response = await fetch('/api/recipes/generate', {
         method: 'POST',
         headers: {
@@ -137,7 +137,7 @@ export function RecipeDisplay({
         body: JSON.stringify({ ingredients }),
         signal: abortControllerRef.current.signal,
       });
-      console.log('Response received:', response.status, response.ok);
+      //console.log('Response received:', response.status, response.ok);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -146,7 +146,7 @@ export function RecipeDisplay({
           setError(`Rate limit exceeded. Please try again in ${errorData.details?.retryAfter || 60} seconds.`);
         } else {
           setError('Failed to generate recipe. Please try again.');
-          console.log("Error response received:", errorData, response)
+          //console.log("Error response received:", errorData, response)
         }
         return;
       }
@@ -165,7 +165,7 @@ export function RecipeDisplay({
         const { done, value } = await reader.read();
         
         if (done) {
-          console.log('Stream finished, accumulated content length:', accumulatedContent.length);
+          //onsole.log('Stream finished, accumulated content length:', accumulatedContent.length);
           break;
         }
         
@@ -232,23 +232,22 @@ export function RecipeDisplay({
 
   // Auto-generate when ingredients change and minimum reached
   useEffect(() => {
-    // console.log('Auto-generation check:', {
-    //   ingredientsLength: ingredients.length,
-    //   isGenerating,
-    //   hasDisplayedContent: !!displayedContent,
-    //   ingredients
-    // });
+    // Reset generation flag when ingredients change
+    hasGeneratedRef.current = false;
     
-    if (ingredients.length >= 3 && !isGenerating && !displayedContent && !hasGeneratedRef.current) {
-      // console.log('Auto-generating recipe...');
+    // Clear displayed content when ingredients change
+    if (displayedContent) {
+      setDisplayedContent('');
+      setFullContent('');
+      setRecipeTitle('');
+    }
+    
+    // Auto-generate if conditions are met
+    if (ingredients.length >= 3 && !isGenerating && !hasGeneratedRef.current) {
       hasGeneratedRef.current = true;
       generateRecipe();
     }
-  }, [ingredients, isGenerating, displayedContent, generateRecipe]);
-
-  useEffect(() => {
-    hasGeneratedRef.current = false;
-  }, [ingredients]);
+  }, [ingredients, isGenerating, generateRecipe, displayedContent]);
 
   // Save recipe to database
   const saveRecipe = async () => {

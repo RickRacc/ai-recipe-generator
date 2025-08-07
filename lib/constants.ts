@@ -111,7 +111,7 @@ export const COMMON_INGREDIENTS = [
 // Blacklisted items (non-food items)
 export const BLACKLISTED_ITEMS = [
   'metal', 'plastic', 'glass', 'wood', 'paper', 'concrete', 'stone', 'rubber', 'fabric',
-  'soap', 'detergent', 'bleach', 'ammonia', 'alcohol', 'gasoline', 'oil', 'paint',
+  'soap', 'detergent', 'bleach', 'ammonia', 'alcohol', 'gasoline', 'paint',
   'medicine', 'pills', 'drugs', 'poison', 'chemicals', 'cleaning products',
 ] as const;
 
