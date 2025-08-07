@@ -110,14 +110,14 @@ export function RecipeDisplay({
 
   // Generate recipe with streaming
   const generateRecipe = useCallback(async () => {
-    // console.log('generateRecipe called with ingredients:', ingredients);
+    console.log('generateRecipe called with ingredients:', ingredients);
     
     if (ingredients.length < 3) {
-      // console.log('Not enough ingredients, need at least 3');
+      console.log('Not enough ingredients, need at least 3');
       return;
     }
 
-    // console.log('Starting recipe generation...');
+    console.log('Starting recipe generation...');
     setError(null);
     setDisplayedContent('');
     setFullContent('');
