@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Filter, Trash2, Eye, Calendar, Clock, ChefHat, Loader2 } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -41,6 +43,8 @@ export function RecipeHistory({ onRecipeSelect, className = '' }: RecipeHistoryP
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [error, setError] = useState<string | null>(null);
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const router = useRouter();
 
   // Fetch recipes from API
   const fetchRecipes = useCallback(async (page = 1, search = searchQuery) => {
@@ -141,10 +145,45 @@ export function RecipeHistory({ onRecipeSelect, className = '' }: RecipeHistoryP
     fetchRecipes(page);
   };
 
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          router.push('/auth/login');
+          return;
+        }
+        
+        setIsAuthenticated(true);
+      } catch {
+        router.push('/auth/login');
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
   // Initial load and when sort changes
   useEffect(() => {
-    fetchRecipes();
-  }, [sortBy, sortOrder, fetchRecipes]);
+    if (isAuthenticated) {
+      fetchRecipes();
+    }
+  }, [sortBy, sortOrder, fetchRecipes, isAuthenticated]);
+
+  // Show loading state while checking authentication
+  if (isAuthenticated === null) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+          <p className="text-muted-foreground">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`space-y-6 ${className}`}>

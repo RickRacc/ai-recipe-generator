@@ -2,6 +2,7 @@ import { AuthButton } from "@/components/auth-button";
 import { EnvVarWarning } from "@/components/env-var-warning";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { RecipeGenerator } from "@/components/recipe/recipe-generator";
+import { AuthProtectedLink } from "@/components/auth-protected-link";
 import { hasEnvVars } from "@/lib/utils";
 import Link from "next/link";
 
@@ -15,9 +16,9 @@ export default function Home() {
             <Link href="/" className="text-xl sm:text-2xl font-bold hover:text-primary transition-all duration-300 font-recipe-title truncate">
               <span className="text-primary">🍳</span> <span className="hidden xs:inline">AI Recipe Generator</span><span className="xs:hidden">Recipes</span>
             </Link>
-            <Link href="/dashboard" className="hidden sm:block text-sm text-muted-foreground hover:text-primary transition-all duration-200 font-medium px-4 py-2 rounded-lg hover:bg-primary/10">
+            <AuthProtectedLink href="/dashboard" className="hidden sm:block text-sm text-muted-foreground hover:text-primary transition-all duration-200 font-medium px-4 py-2 rounded-lg hover:bg-primary/10">
               My Recipes
-            </Link>
+            </AuthProtectedLink>
           </div>
           
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">

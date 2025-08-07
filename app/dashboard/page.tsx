@@ -1,9 +1,22 @@
 import { AuthButton } from "@/components/auth-button";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { RecipeHistory } from "@/components/recipe/recipe-history";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const supabase = await createClient();
+  
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      redirect("/auth/login");
+    }
+  } catch {
+    redirect("/auth/login");
+  }
   return (
     <main className="min-h-screen flex flex-col">
       {/* Navigation */}
