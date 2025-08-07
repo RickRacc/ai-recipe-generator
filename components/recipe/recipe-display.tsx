@@ -182,30 +182,25 @@ export function RecipeDisplay({
               const data = JSON.parse(dataStr);
               // console.log('Parsed SSE data:', data);
               
-              if (data.type === 'chunk') {
-                // console.log('Received chunk:', data.content);
-                accumulatedContent += data.content;
+              if (data.type === 'complete' && !hasStartedTypingRef.current) {
+                // Start typewriter effect with the complete content
+                hasStartedTypingRef.current = true;
                 
-                // Extract title from first heading
-                if (!recipeTitle && accumulatedContent.includes('#')) {
-                  const titleMatch = accumulatedContent.match(/# (.+)/);
+                // Extract title from content
+                if (!recipeTitle && data.content.includes('#')) {
+                  const titleMatch = data.content.match(/# (.+)/);
                   if (titleMatch) {
-                    // console.log('Found recipe title:', titleMatch[1].trim());
                     setRecipeTitle(titleMatch[1].trim());
                   }
                 }
-              } else if (data.type === 'complete' && !hasStartedTypingRef.current) {
-                // Start typewriter effect with the complete content
-                hasStartedTypingRef.current = true;
-                startTypewriter(data.content);
-
-                // Set full content after done with typwriter
-                setTimeout(() => {
-                  setFullContent(data.content);
-                }, data.content.length * ANIMATIONS.TYPING_SPEED + 500);
-
-                // console.log('Recipe generation complete, content length:', data.content.length);
+                
+                // Set full content for saving/copying purposes
                 setFullContent(data.content);
+                
+                // Start typewriter effect
+                startTypewriter(data.content);
+                
+                // console.log('Recipe generation complete, content length:', data.content.length);
               } else if (data.type === 'error') {
                 console.log('Received error from stream:', data.message);
                 setError(data.message);

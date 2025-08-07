@@ -106,15 +106,7 @@ Please format the recipe clearly with sections for ingredients (with measurement
 
           stream.on('text', (text) => {
             fullResponse += text;
-            
-            // Send each chunk as Server-Sent Event
-            const data = JSON.stringify({
-              type: 'chunk',
-              content: text,
-              timestamp: new Date().toISOString(),
-            });
-            
-            controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+            // We'll send the complete response only at the end for better reliability
           });
 
           stream.on('end', () => {
