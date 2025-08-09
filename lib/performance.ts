@@ -190,7 +190,7 @@ export function logPerformanceSummary() {
     const summary = monitor.getSummary();
     
     if (Object.keys(summary).length > 0) {
-      console.group('📊 Performance Summary');
+      console.group('Performance Summary');
       console.table(summary);
       console.groupEnd();
     }

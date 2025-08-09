@@ -51,8 +51,8 @@ export function RecipeDisplay({
     if (!content) return [];
 
     // DEBUG: Log the raw content to understand what we're receiving
-    console.log(' Raw content received:', content);
-    console.log(' Raw content split by lines:', content.split('\n'));
+    console.log('Raw content received:', content);
+    console.log('Raw content split by lines:', content.split('\n'));
 
     // Remove the title from the beginning since we show it separately
     const allLines = content.split('\n');
@@ -328,12 +328,12 @@ export function RecipeDisplay({
           if (line.startsWith('data: ')) {
             try {
               const dataStr = line.slice(6);
-              console.log('📡 Parsing SSE data:', dataStr);
+              console.log('Parsing SSE data:', dataStr);
               const data = JSON.parse(dataStr);
-              console.log('📦 Parsed SSE data:', { type: data.type, hasContent: !!data.content });
+              console.log('Parsed SSE data:', { type: data.type, hasContent: !!data.content });
               
               if (data.type === 'complete' && !hasStartedTypingRef.current) {
-                console.log('🎉 Received complete event:', { contentLength: data.content?.length, hasContent: !!data.content });
+                console.log('Received complete event:', { contentLength: data.content?.length, hasContent: !!data.content });
                 
                 // Start typewriter effect with the complete content
                 hasStartedTypingRef.current = true;
@@ -343,19 +343,19 @@ export function RecipeDisplay({
                   // Try markdown header first: # Title
                   let titleMatch = data.content.match(/# (.+)/);
                   if (titleMatch) {
-                    console.log('📝 Setting recipe title (markdown):', titleMatch[1].trim());
+                    console.log('Setting recipe title (markdown):', titleMatch[1].trim());
                     setRecipeTitle(titleMatch[1].trim());
                   } else {
                     // Try numbered format: 1. Title
                     titleMatch = data.content.match(/^1\.\s*(.+?)(?:\n|$)/m);
                     if (titleMatch) {
-                      console.log('📝 Setting recipe title (numbered):', titleMatch[1].trim());
+                      console.log('Setting recipe title (numbered):', titleMatch[1].trim());
                       setRecipeTitle(titleMatch[1].trim());
                     } else {
                       // Fallback: use first line
                       const firstLine = data.content.split('\n')[0].trim();
                       if (firstLine) {
-                        console.log('📝 Setting recipe title (first line):', firstLine);
+                        console.log('Setting recipe title (first line):', firstLine);
                         setRecipeTitle(firstLine);
                       }
                     }
@@ -363,13 +363,13 @@ export function RecipeDisplay({
                 }
                 
                 // Set full content for saving/copying purposes
-                console.log('💾 Setting fullContent with length:', data.content?.length);
+                console.log('Setting fullContent with length:', data.content?.length);
                 setFullContent(data.content);
                 
                 // Start typewriter effect
                 startTypewriter(data.content);
                 
-                console.log('✅ Recipe generation complete, content length:', data.content.length);
+                console.log('Recipe generation complete, content length:', data.content.length);
               } else if (data.type === 'error') {
                 console.log('Received error from stream:', data.message);
                 setError(data.message);
