@@ -79,7 +79,16 @@ export async function POST(request: NextRequest) {
     // Create the prompt for Claude
     const prompt = `Create a delicious recipe using these ingredients: ${ingredients.join(', ')}.
 
-Please format the recipe clearly with sections for ingredients (with measurements), instructions, prep time, cook time, and servings. Make the recipe practical and achievable for home cooks.`;
+IMPORTANT: Use the exact numbered format specified in the system prompt:
+1. Recipe Title
+2. Prep Time: [X minutes]
+3. Cook Time: [X minutes]
+4. Servings: [X servings]
+5. Ingredients: [with measurements]
+6. Instructions: [numbered steps]
+7. Chef's Tips: [optional]
+
+Make the recipe practical and achievable for home cooks.`;
     // console.log('Generated prompt:', prompt);
 
     // Create streaming response

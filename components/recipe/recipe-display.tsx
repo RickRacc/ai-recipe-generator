@@ -50,101 +50,127 @@ export function RecipeDisplay({
   const formatRecipeContent = useCallback((content: string) => {
     if (!content) return [];
 
-    let formatted = content;
+    // DEBUG: Log the raw content to understand what we're receiving
+    console.log(' Raw content received:', content);
+    console.log(' Raw content split by lines:', content.split('\n'));
 
-    // Remove the title from the beginning if it exists (since we show it separately)
-    const allLines = formatted.split('\n');
+    // Remove the title from the beginning since we show it separately
+    const allLines = content.split('\n');
     let startIndex = 0;
     
-    // Check if first line is a title (either numbered or markdown)
-    if (allLines[0]) {
-      const firstLine = allLines[0].trim();
-      const isNumberedTitle = /^1\.\s*/.test(firstLine);
-      const isMarkdownTitle = /^#\s*/.test(firstLine);
-      
-      if (isNumberedTitle || isMarkdownTitle) {
-        startIndex = 1; // Skip the first line
-        // Also skip any empty lines after the title
-        while (startIndex < allLines.length && !allLines[startIndex].trim()) {
-          startIndex++;
-        }
+    // Skip the first line if it's a numbered title (1. Recipe Name)
+    if (allLines[0] && /^1\.\s*/.test(allLines[0].trim())) {
+      startIndex = 1;
+      // Also skip any empty lines after the title
+      while (startIndex < allLines.length && !allLines[startIndex].trim()) {
+        startIndex++;
       }
     }
     
-    // Rejoin the lines without the title
-    formatted = allLines.slice(startIndex).join('\n');
-
-    // Clean up any extra whitespace at the beginning
-    formatted = formatted.replace(/^\s+/, '');
-
-    // Split content into lines and process each one
-    const lines = formatted.split('\n');
+    const lines = allLines.slice(startIndex);
     const elements: React.ReactElement[] = [];
     let currentIndex = 0;
-
-    // Define sections that need different spacing
-    const smallSpacingSections = ['prep time', 'servings', 'ingredients'];
-    const largeSpacingSections = ['instructions', 'chef\'s tips', 'notes'];
-    
-    // Define what constitutes a main section title (not instruction steps)
-    const validSectionTitles = [
-      'prep time', 'cook time', 'total time', 'servings', 'serves', 'ingredients', 
-      'instructions', 'directions', 'chef\'s tips', 'tips', 'notes', 'nutrition'
-    ];
-
-    // Helper function to check if a title matches a valid section
-    const isValidSectionTitle = (title: string) => {
-      const titleLower = title.toLowerCase().trim();
-      return validSectionTitles.some(validTitle => 
-        titleLower === validTitle || 
-        titleLower.includes(validTitle) || 
-        validTitle.includes(titleLower)
-      );
-    };
+    let inInstructionsSection = false;
+    let instructionStepCounter = 1;
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       
-      // Check if line starts with a number (potential section title)
-      const numberMatch = line.match(/^(\d+)\.\s*(.+)/);
-      if (numberMatch) {
-        const titleText = numberMatch[2].replace(/:$/, ''); // Remove trailing colon if present
+      // Check for main section headers (2. Prep Time, 3. Cook Time, etc.)
+      const sectionMatch = line.match(/^(\d+)\.\s*(.+)/);
+      if (sectionMatch) {
+        const sectionNumber = parseInt(sectionMatch[1]);
+        const sectionText = sectionMatch[2].trim();
         
-        // Only treat as section title if it matches our known sections
-        if (isValidSectionTitle(titleText)) {
-          const titleLower = titleText.toLowerCase().trim();
-          // This is a main section title - make it semibold
-          // Determine spacing based on section type
-          let topSpacing = 'mt-4'; // default spacing
-          if (smallSpacingSections.some(section => titleLower.includes(section) || section.includes(titleLower))) {
-            topSpacing = 'mt-2'; // reduced spacing for basic info sections
-          } else if (largeSpacingSections.some(section => titleLower.includes(section) || section.includes(titleLower))) {
-            topSpacing = 'mt-6'; // increased spacing for main content sections
+        // Main sections (2-7) should be bold with proper spacing
+        if (sectionNumber >= 2 && sectionNumber <= 7 && !inInstructionsSection) {
+          // Check if we're entering the Instructions section
+          if (sectionText.toLowerCase().includes('instructions')) {
+            inInstructionsSection = true;
+            instructionStepCounter = 1; // Reset counter for new instructions section
           }
           
+          const isBasicInfo = sectionText.toLowerCase().includes('prep time') || 
+                             sectionText.toLowerCase().includes('cook time') ||
+                             sectionText.toLowerCase().includes('servings');
+          const isMainSection = sectionText.toLowerCase().includes('ingredients') ||
+                               sectionText.toLowerCase().includes('instructions') ||
+                               sectionText.toLowerCase().includes('tips');
+          
+          const spacing = isBasicInfo ? 'mt-2' : isMainSection ? 'mt-4' : 'mt-3';
+          
           elements.push(
-            <div key={currentIndex++} className={`text-base ${topSpacing} mb-2`}>
-              <span className="font-semibold">{titleText}</span>
+            <div key={currentIndex++} className={`${spacing} mb-2`}>
+              <span className="font-bold text-base">{sectionText}</span>
             </div>
           );
+        } else if (inInstructionsSection) {
+          // This is an instruction step within the Instructions section
+          // Check if this line indicates we're leaving the instructions section
+          if (sectionNumber >= 7 || sectionText.toLowerCase().includes('chef') || sectionText.toLowerCase().includes('tips')) {
+            inInstructionsSection = false;
+            elements.push(
+              <div key={currentIndex++} className="mt-4 mb-2">
+                <span className="font-bold text-base">{sectionText}</span>
+              </div>
+            );
+          } else {
+            // This is a numbered instruction step
+            elements.push(
+              <div key={currentIndex++} className="mb-1 text-sm">
+                {sectionNumber}. {sectionText}
+              </div>
+            );
+          }
         } else {
-          // This is likely an instruction step - treat as regular content
+          // Regular numbered content outside instructions
           elements.push(
-            <div key={currentIndex++} className="mb-1 font-normal text-sm">
+            <div key={currentIndex++} className="mb-1 text-sm">
               {line}
             </div>
           );
         }
       } else if (line.trim()) {
-        // Regular content line - ensure it's not bold
-        elements.push(
-          <div key={currentIndex++} className="mb-1 font-normal text-sm">
-            {line}
-          </div>
-        );
+        // Regular content line - check if it's an unnumbered instruction step
+        if (inInstructionsSection) {
+          // If we're in instructions and this looks like a step, add numbering
+          const trimmedLine = line.trim();
+          if (trimmedLine && !trimmedLine.startsWith('-') && !trimmedLine.startsWith('•')) {
+            // Check if we're leaving the instructions section
+            if (trimmedLine.toLowerCase().includes('chef') || trimmedLine.toLowerCase().includes('tip')) {
+              inInstructionsSection = false;
+              elements.push(
+                <div key={currentIndex++} className="mt-4 mb-2">
+                  <span className="font-bold text-base">{trimmedLine}</span>
+                </div>
+              );
+            } else {
+              // This is an instruction step
+              elements.push(
+                <div key={currentIndex++} className="mb-1 text-sm">
+                  {instructionStepCounter}. {trimmedLine}
+                </div>
+              );
+              instructionStepCounter++;
+            }
+          } else {
+            elements.push(
+              <div key={currentIndex++} className="mb-1 text-sm">
+                {line}
+              </div>
+            );
+          }
+        } else {
+          // Regular content line (ingredients, etc.)
+          elements.push(
+            <div key={currentIndex++} className="mb-1 text-sm">
+              {line}
+            </div>
+          );
+        }
       } else {
-        // Empty line - add some spacing
-        elements.push(<div key={currentIndex++} className="mb-2" />);
+        // Empty line - add spacing and potentially reset instructions flag
+        elements.push(<div key={currentIndex++} className="mb-1" />);
       }
     }
 
